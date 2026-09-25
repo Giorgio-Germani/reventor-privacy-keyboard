@@ -11,3 +11,8 @@ key.jks
 java/res/raw/mozc.data
 .cxx
 java/src/org/futo/inputmethod/keyboard/internal/KeyboardTextsTable.java
+# Canary voice input - large model binaries are not tracked (see CANARY_SETUP.md)
+voiceinput-shared/src/main/assets/*.onnx
+voiceinput-shared/src/main/assets/*.bin
+sherpa-onnx-nemo-canary-180m-flash-en-es-de-fr-int8/
+sherpa-onnx-nemo-canary-180m-flash-en-es-de-fr-int8.tar.bz2

@@ -37,6 +37,8 @@ import org.futo.voiceinput.shared.types.Language
 import org.futo.voiceinput.shared.types.MagnitudeState
 import org.futo.voiceinput.shared.types.ModelInferenceCallback
 import org.futo.voiceinput.shared.types.ModelLoader
+import org.futo.voiceinput.shared.canary.CanaryRunner
+import org.futo.voiceinput.shared.canary.canaryApplies
 import org.futo.voiceinput.shared.ui.MicrophoneDeviceState
 import org.futo.voiceinput.shared.whisper.DecodingConfiguration
 import org.futo.voiceinput.shared.whisper.ModelManager
@@ -87,7 +89,8 @@ data class RecordingSettings(
 data class AudioRecognizerSettings(
     val modelRunConfiguration: MultiModelRunConfiguration,
     val decodingConfiguration: DecodingConfiguration,
-    val recordingConfiguration: RecordingSettings
+    val recordingConfiguration: RecordingSettings,
+    val useCanary: Boolean = true
 )
 
 class ModelDoesNotExistException(val models: List<ModelLoader>) : Throwable()
@@ -103,6 +106,15 @@ class AudioRecognizer(
     private var recorder: AudioRecord? = null
 
     private val modelRunner = MultiModelRunner(modelManager)
+    private val canaryRunner = CanaryRunner(context)
+
+    // Canary is used whenever all enabled languages are among the ones the
+    // bundled canary-180m-flash model supports; it detects the language itself.
+    private val canaryActive = settings.useCanary && canaryApplies(settings.decodingConfiguration.languages)
+
+    // Set if loading the canary engine failed at runtime; falls back to whisper
+    @Volatile
+    private var canaryFailed = false
 
     private val canExpandSpace = settings.recordingConfiguration.canExpandSpace
     private val useVAD = settings.recordingConfiguration.useVADAutoStop
@@ -194,6 +206,8 @@ class AudioRecognizer(
 
     @Throws(ModelDoesNotExistException::class)
     private fun verifyModelsExist() {
+        if (canaryActive) return
+
         val modelsThatDoNotExist = mutableListOf<ModelLoader>()
 
         if (!settings.modelRunConfiguration.primaryModel.exists(context)) {
@@ -293,6 +307,15 @@ class AudioRecognizer(
     }
 
     private suspend fun preloadModels() {
+        if (canaryActive) {
+            try {
+                canaryRunner.preload()
+                return
+            } catch(e: Exception) {
+                e.printStackTrace()
+                canaryFailed = true
+            }
+        }
         modelRunner.preload(settings.modelRunConfiguration)
     }
 
@@ -552,12 +575,20 @@ class AudioRecognizer(
 
         yield()
         val outputText = try {
-             modelRunner.run(
-                floatArray,
-                settings.modelRunConfiguration,
-                settings.decodingConfiguration,
-                runnerCallback
-            ).trim()
+            if (canaryActive && !canaryFailed) {
+                canaryRunner.run(
+                    samples = floatArray,
+                    languages = settings.decodingConfiguration.languages,
+                    callback = runnerCallback
+                )
+            } else {
+                modelRunner.run(
+                    floatArray,
+                    settings.modelRunConfiguration,
+                    settings.decodingConfiguration,
+                    runnerCallback
+                ).trim()
+            }
         }catch(e: InferenceCancelledException) {
             yield()
             return

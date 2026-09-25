@@ -12,7 +12,7 @@ dependencyResolutionManagement {
         mavenCentral()
 
         flatDir {
-            dirs 'libs'
+            dirs 'libs', 'extra-libs'
         }
     }
 }
