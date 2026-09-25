@@ -287,7 +287,7 @@ private class VoiceInputActionWindow(
     }
 
     override fun openSettings() {
-        SettingsActivity.openToNavDest(context, "languages")
+        SettingsActivity.openToNavDest(context, "home")
     }
 }
 

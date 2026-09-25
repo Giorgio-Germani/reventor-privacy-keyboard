@@ -57,13 +57,6 @@ val HomeScreenLite = UserSettingsMenu(
         ),
 
         userSettingNavigationItem(
-            title = R.string.language_settings_title,
-            style = NavigationItemStyle.HomePrimary,
-            navigateTo = "languages",
-            icon = R.drawable.globe
-        ),
-
-        userSettingNavigationItem(
             title = R.string.settings_keyboard_typing_title,
             style = NavigationItemStyle.HomeSecondary,
             navigateTo = "keyboardAndTyping",

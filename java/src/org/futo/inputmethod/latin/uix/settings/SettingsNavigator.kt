@@ -43,7 +43,6 @@ import org.futo.inputmethod.latin.uix.settings.pages.KASROZMenu
 import org.futo.inputmethod.latin.uix.settings.pages.KeyboardAndTypingScreen
 import org.futo.inputmethod.latin.uix.settings.pages.KeyboardSettingsMenu
 import org.futo.inputmethod.latin.uix.settings.pages.LanguageSettingsLite
-import org.futo.inputmethod.latin.uix.settings.pages.LanguagesScreen
 import org.futo.inputmethod.latin.uix.settings.pages.LongPressMenu
 import org.futo.inputmethod.latin.uix.settings.pages.MiscMenu
 import org.futo.inputmethod.latin.uix.settings.pages.NumberRowSettingMenu
@@ -159,7 +158,6 @@ fun SettingsNavigator(
             }
             composable("home") { HomeScreen(navController) }
             composable("search") { SearchScreen(navController) }
-            composable("languages") { LanguagesScreen(navController) }
             composable("addLanguage") { SelectLanguageScreen(navController) }
             composable("pdict") {
                 PersonalDictionaryLanguageList()
