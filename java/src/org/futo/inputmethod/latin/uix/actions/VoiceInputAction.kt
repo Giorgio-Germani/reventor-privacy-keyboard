@@ -311,7 +311,12 @@ val VoiceInputAction = Action(icon = R.drawable.mic_fill,
     windowImpl = { manager, persistentState ->
         val locales = manager.getActiveLocales()
 
+        // REVENTOR: voice input uses the bundled Canary engine and does not
+        // depend on a per-language whisper model. Fall back to the built-in
+        // English model (only used by the whisper fallback path) so the
+        // microphone always works regardless of the active keyboard language.
         val model = ResourceHelper.tryFindingVoiceInputModelForLocale(manager.getContext(), locales.firstOrNull() ?: Locale.ROOT)
+            ?: org.futo.voiceinput.shared.BUILTIN_ENGLISH_MODEL
 
         if(model == null) {
             VoiceInputNoModelWindow(locales.firstOrNull() ?: Locale.ROOT)
