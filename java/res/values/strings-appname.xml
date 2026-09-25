@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Application name for the keyboard. -->
-    <string name="english_ime_name">REVENTOR Keyboard</string>
+    <string name="english_ime_name">REVENTOR Privacy Keyboard</string>
 
     <!-- Name of Android spell checker service. -->
     <string name="spell_checker_service_name">REVENTOR Spell Checker</string>
 
     <!-- Title for Android Keyboard settings screen. -->
-    <string name="english_ime_settings">REVENTOR Keyboard Settings</string>
+    <string name="english_ime_settings">REVENTOR Privacy Keyboard Settings</string>
 
     <!-- Title for the spell checking service settings screen. -->
     <string name="android_spell_checker_settings">REVENTOR Spell Checker Settings</string>

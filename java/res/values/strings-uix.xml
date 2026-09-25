@@ -217,9 +217,9 @@
 
     <!-- Payment screen -->
     <string name="payment_screen_short_title">Payment</string>
-    <string name="payment_screen_title">Pay for REVENTOR Keyboard</string>
-    <string name="payment_screen_sales_paragraph_1">You\'ve been using REVENTOR Keyboard for <xliff:g name="days" example="30">%d</xliff:g> days. If you find this app useful, please consider paying to support future development of REVENTOR software.</string>
-    <string name="payment_screen_sales_paragraph_1_alt">Thank you for trying out REVENTOR Keyboard! If you find this app useful, please consider paying to support future development of REVENTOR software.</string>
+    <string name="payment_screen_title">Pay for REVENTOR Privacy Keyboard</string>
+    <string name="payment_screen_sales_paragraph_1">You\'ve been using REVENTOR Privacy Keyboard for <xliff:g name="days" example="30">%d</xliff:g> days. If you find this app useful, please consider paying to support future development of REVENTOR software.</string>
+    <string name="payment_screen_sales_paragraph_1_alt">Thank you for trying out REVENTOR Privacy Keyboard! If you find this app useful, please consider paying to support future development of REVENTOR software.</string>
     <string name="payment_screen_sales_paragraph_2">FUTO is dedicated to making good software that doesn\'t abuse you. This app will never serve you ads or collect your personal data.</string>
     <string name="payment_screen_sales_point_development_title">Sustainable Development</string>
     <string name="payment_screen_sales_point_development_body">FUTO\'s mission is for open-source software and non-malicious software business practices to become a sustainable income source for projects and their developers. For this reason, we are in favor of users actually paying for software.</string>
@@ -227,7 +227,7 @@
     <string name="payment_screen_sales_point_privacy_body">This app will never serve you ads or sell your data. We are not in the business of doing that.</string>
     <string name="payment_screen_error_build_unsupported_payment">Payment is unsupported on this build</string>
     <string name="payment_screen_already_paid_title">Already paid?</string>
-    <string name="payment_screen_already_paid_body">If you already paid for REVENTOR Keyboard or REVENTOR Voice Input, tap below.</string>
+    <string name="payment_screen_already_paid_body">If you already paid for REVENTOR Privacy Keyboard or REVENTOR Voice Input, tap below.</string>
     <string name="payment_screen_already_paid_button">I already paid</string>
     <string name="payment_screen_already_paid_confirmation">Confirm your choice</string>
     <string name="payment_screen_already_paid_confirmation_body">Are you sure you want to confirm you already paid? Once confirmed, you won\'t be asked about paying again.</string>
@@ -253,8 +253,8 @@
     <string name="payment_screen_payment_complete_title">Payment Complete</string>
     <string name="payment_screen_aftersales_title">Thank you</string>
     <string name="payment_screen_aftersales_title_pending">Payment Pending</string>
-    <string name="payment_screen_aftersales_paragraph_1">Thank you for purchasing REVENTOR Keyboard!</string>
-    <string name="payment_screen_aftersales_paragraph_2">Your purchase will help continued development of REVENTOR Keyboard, and other FUTO projects.</string>
+    <string name="payment_screen_aftersales_paragraph_1">Thank you for purchasing REVENTOR Privacy Keyboard!</string>
+    <string name="payment_screen_aftersales_paragraph_2">Your purchase will help continued development of REVENTOR Privacy Keyboard, and other FUTO projects.</string>
     <string name="payment_screen_aftersales_paragraph_2_pending">Your payment is still pending, but it should clear soon.</string>
     <string name="payment_screen_aftersales_paragraph_3">If you just paid, your payment may still be processing, you should get an email with more information.</string>
     <string name="payment_screen_payment_failed_title">Payment Error</string>
@@ -263,16 +263,16 @@
     <string name="payment_screen_license_integrity_error">Failed to verify license. If you believe this to be an error, please contact us.</string>
     <string name="payment_screen_continue_button">Continue</string>
 
-    <string name="payment_unpaid_version_title">Unpaid REVENTOR Keyboard</string>
+    <string name="payment_unpaid_version_title">Unpaid REVENTOR Privacy Keyboard</string>
     <string name="payment_unpaid_version_indicator">Unpaid</string>
-    <string name="payment_paid_version_indicator">Thank you for using the paid version of REVENTOR Keyboard!</string>
+    <string name="payment_paid_version_indicator">Thank you for using the paid version of REVENTOR Privacy Keyboard!</string>
 
 
     <!-- Lack of automatic updates notice -->
     <string name="manual_update_notice_title">Updates Notice</string>
     <string name="manual_update_notice_paragraph_1">This app doesn\'t connect to the internet and it won\'t be able to check for automatic updates. You can check for updates manually though.</string>
     <string name="manual_update_notice_paragraph_2">Please use F-Droid or Obtainium for automatic updates. Visit keyboard.futo.tech for download options.</string>
-    <string name="manual_update_notice_dev_paragraph">You are on the development build of REVENTOR Keyboard. Visit keyboard.futo.tech if you want to download the stable build.</string>
+    <string name="manual_update_notice_dev_paragraph">You are on the development build of REVENTOR Privacy Keyboard. Visit keyboard.futo.tech if you want to download the stable build.</string>
     <string name="manual_update_notice_visit_site_button">Visit</string>
     <!-- can be translated as "understood", etc -->
     <string name="manual_update_notice_dismiss_notice_button">Dismiss</string>
@@ -366,7 +366,7 @@
     <string name="resource_importer_select_language">Select the language to import for:</string>
     <string name="resource_importer_warning_language_missing">This file appears to be intended for a language (%1$s) which is not enabled in settings</string>
     <string name="resource_importer_warning_cfg_backup_is_destructive2">Are you sure you want to import this configuration backup? This will replace all of your settings, personal dictionary (system-wide), learned dictionary words, any imported resources, and more. If you’re unsure, make another backup before this.</string>
-    <string name="resource_importer_warning_cfg_backup_newer_version">This configuration backup was created by a newer version of REVENTOR Keyboard, and it might not import properly. Try updating REVENTOR Keyboard first.</string>
+    <string name="resource_importer_warning_cfg_backup_newer_version">This configuration backup was created by a newer version of REVENTOR Privacy Keyboard, and it might not import properly. Try updating REVENTOR Privacy Keyboard first.</string>
 
     <string name="settings_export_configuration_title">Settings Backup</string>
     <string name="settings_export_configuration">Export configuration</string>
@@ -517,7 +517,7 @@
     <string name="theme_settings_custom_theme_delete_cancel">Cancel</string>
     <string name="theme_settings_add_new_theme">Add new theme</string>
     <string name="theme_settings_add_new_theme_question">Create a new theme from a picture, or add a downloaded ZIP theme?</string>
-    <string name="theme_settings_warning_newer_version">This theme may require a newer version of REVENTOR Keyboard than the one you have. If you\'re a theme developer, check the error log below.</string>
+    <string name="theme_settings_warning_newer_version">This theme may require a newer version of REVENTOR Privacy Keyboard than the one you have. If you\'re a theme developer, check the error log below.</string>
     <string name="theme_settings_visit_theme_store">Explore themes online</string>
 
     <!-- Theme customizer -->
@@ -645,18 +645,18 @@
     <string name="setup_step_1">Setup - Step 1</string>
     <string name="setup_step_2">Setup - Step 2</string>
     <string name="setup_step_3">Setup - Step 3</string>
-    <string name="setup_welcome_text">Welcome to REVENTOR Keyboard — Offline AI Transcription for English, German, Spanish and French. Everything runs locally on your device, and the spoken language (EN/DE/ES/FR) is detected automatically. Voice input only supports these four languages.
+    <string name="setup_welcome_text">Welcome to REVENTOR Privacy Keyboard — Offline AI Transcription for English, German, Spanish and French. Everything runs locally on your device, and the spoken language (EN/DE/ES/FR) is detected automatically. Voice input only supports these four languages.
 
-To get started, enable REVENTOR Keyboard as an input method.</string>
+To get started, enable REVENTOR Privacy Keyboard as an input method.</string>
     <string name="setup_open_input_settings">Open Input Method Settings</string>
     <string name="setup_warning_multiple_versions">Warning: You seem to have both Play Store and Standalone versions installed, we only recommend installing one</string>
-    <string name="setup_active_input_method">Please select REVENTOR Keyboard as your active input method.</string>
+    <string name="setup_active_input_method">Please select REVENTOR Privacy Keyboard as your active input method.</string>
     <string name="setup_switch_input_methods">Switch Input Methods</string>
 
     <!-- Credits menu -->
     <string name="credits_menu_title">Credits</string>
-    <string name="credits_menu_header_text">Thanks to these people for helping make REVENTOR Keyboard a great app!</string>
-    <string name="credits_reventor_title">REVENTOR Keyboard</string>
+    <string name="credits_menu_header_text">Thanks to these people for helping make REVENTOR Privacy Keyboard a great app!</string>
+    <string name="credits_reventor_title">REVENTOR Privacy Keyboard</string>
     <string name="credits_reventor_body">This app is a fork of FUTO Keyboard, modified and improved by Reventor. It ships with an improved offline voice recognition engine (NVIDIA Canary) that automatically understands English, German, Spanish and French — without downloading models or picking a language. All important dictionaries are already included.</string>
     <string name="credits_reventor_upstream">Based on FUTO Keyboard by FUTO — visit futo.tech</string>
     <string name="credits_menu_team_translators_title">Translators</string>
