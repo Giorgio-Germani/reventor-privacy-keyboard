@@ -171,13 +171,5 @@ val VoiceInputMenu = UserSettingsMenu(
             subtitle = R.string.voice_input_settings_animate_bubble_subtitle,
             setting = ANIMATE_BUBBLE
         ).copy(visibilityCheck = visibilityCheckNotSystemVoiceInput),
-
-        userSettingNavigationItem(
-            title = R.string.voice_input_settings_change_models,
-            subtitle = R.string.voice_input_settings_change_models_subtitle,
-            style = NavigationItemStyle.Misc,
-            navigateTo = "languages"
-        ).copy(visibilityCheck = visibilityCheckNotSystemVoiceInput),
-        //}
     )
 )

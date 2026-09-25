@@ -132,7 +132,9 @@ private class VoiceInputActionWindow(
 
         val primaryModel = model
         val languageSpecificModels = mutableMapOf<Language, ModelLoader>()
-        val allowedLanguages = locales.mapNotNull { getLanguageFromWhisperString(it.language) }.toSet()
+        // Voice input always supports the languages built into the bundled
+        // Canary model; the detected spoken language is used automatically.
+        val allowedLanguages = setOf(Language.English, Language.German, Language.Spanish, Language.French)
         val glossary = if(usePersonalDict) {
             state.userDictionaryObserver.getWords(locales).filter { it.shortcut.isNullOrEmpty() }.map { it.word }
         } else {

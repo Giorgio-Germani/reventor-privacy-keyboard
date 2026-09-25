@@ -118,12 +118,27 @@ object Subtypes {
             return
         }
 
-        val locales = context.resources.configuration.locales
-        if(locales.size() == 0) return
+        // REVENTOR Keyboard ships with English, German, Spanish and French
+        // pre-enabled (switchable with the language key), plus the system
+        // locales of the device.
+        val preEnabled = listOf(
+            Locale.ENGLISH,
+            Locale.GERMAN,
+            Locale("es"),
+            Locale.FRENCH
+        )
 
+        val locales = context.resources.configuration.locales
         var numAdded = 0
-        for(i in 0 until locales.size()) {
-            val locale = locales.get(i).stripExtensionsIfNeeded()
+        val seen = mutableSetOf<String>()
+        val languagesToAdd = buildList {
+            for(i in 0 until locales.size()) {
+                add(locales.get(i).stripExtensionsIfNeeded())
+            }
+            addAll(preEnabled)
+        }.distinctBy { it.language }
+
+        for(locale in languagesToAdd) {
             val layout = findClosestLocaleLayouts(context, locale).firstOrNull() ?: continue
 
             addLanguage(context, locale, layout)
