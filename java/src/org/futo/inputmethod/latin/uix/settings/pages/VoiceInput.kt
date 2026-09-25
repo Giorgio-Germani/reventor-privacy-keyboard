@@ -56,66 +56,6 @@ val VoiceInputMenu = UserSettingsMenu(
     title = R.string.voice_input_settings_title,
     navPath = "voiceInput", registerNavPath = true,
     settings = listOf(
-        UserSetting(
-            name = R.string.voice_input_settings_backend_system,
-            searchTagList = listOf(
-                R.string.voice_input_settings_disable_builtin_voice_input,
-                R.string.voice_input_settings_disable_builtin_voice_input_subtitle
-            )
-        ) {
-            val useExternal = useDataStore(USE_SYSTEM_VOICE_INPUT)
-            val externalPkg = useDataStore(SYSTEM_VOICE_INPUT_PACKAGE)
-
-            val context = LocalContext.current
-            val res = LocalResources.current
-            val options = remember(externalPkg.value) {
-                val imm = context.getSystemService<InputMethodManager>()!!
-                buildList {
-                    add(VoiceIMEInfo(true, "", ""))
-                    addAll(imm.enabledInputMethodList.filter { im ->
-                        im.packageName == externalPkg.value ||
-                            (0 until im.subtypeCount).map { im.getSubtypeAt(it) }
-                                .any { it.mode.lowercase() == "voice" }
-                    }.map {
-                        VoiceIMEInfo(false, it.loadLabel(context.packageManager)?.toString() ?: it.packageName, it.packageName)
-                    })
-                }
-            }
-
-            val currOption = remember(externalPkg.value) {
-                if(externalPkg.value == "") options[0] else
-                options.find { it.packageName == externalPkg.value }
-            }
-
-
-            DropDownPickerSettingItem(
-                stringResource(R.string.voice_input_settings_backend_system),
-                options,
-                currOption,
-                {
-                    useExternal.setValue(!it.builtin)
-                    externalPkg.setValue(it.packageName ?: "")
-                },
-                {
-                    if(it.builtin) res.getString(R.string.voice_input_settings_backend_system_internal)
-                    else it.name
-                }
-            )
-
-            if(useExternal.value && externalPkg.value.isNotEmpty()) {
-                val privacyWhitelist = listOf(
-                    "org.futo.voiceinput",
-                    "org.futo.voiceinput.dev",
-                    "dev.notune.transcribe",
-                    "dev.soupslurpr.transcribro"
-                )
-
-                if(!privacyWhitelist.contains(externalPkg.value))
-                    Tip(stringResource(R.string.voice_input_settings_backend_system_external_warning,
-                        currOption?.name ?: externalPkg.value))
-            }
-        },
-
         //if(!systemVoiceInput.value) {
         userSettingToggleDataStore(
             title = R.string.voice_input_settings_indication_sounds,

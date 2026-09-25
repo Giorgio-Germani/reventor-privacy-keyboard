@@ -656,6 +656,9 @@ To get started, enable REVENTOR Keyboard as an input method.</string>
     <!-- Credits menu -->
     <string name="credits_menu_title">Credits</string>
     <string name="credits_menu_header_text">Thanks to these people for helping make REVENTOR Keyboard a great app!</string>
+    <string name="credits_reventor_title">REVENTOR Keyboard</string>
+    <string name="credits_reventor_body">This app is a fork of FUTO Keyboard, modified and improved by Reventor. It ships with an improved offline voice recognition engine (NVIDIA Canary) that automatically understands English, German, Spanish and French — without downloading models or picking a language. All important dictionaries are already included.</string>
+    <string name="credits_reventor_upstream">Based on FUTO Keyboard by FUTO — visit futo.tech</string>
     <string name="credits_menu_team_translators_title">Translators</string>
     <string name="credits_menu_team_keyboard_layouts_title">Layout contributors</string>
     <string name="credits_menu_team_code_title">Code contributors</string>

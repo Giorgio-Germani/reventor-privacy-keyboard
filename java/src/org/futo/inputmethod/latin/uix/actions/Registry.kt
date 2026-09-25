@@ -69,13 +69,10 @@ private fun List<Action>.verifyNamesAreUnique(): List<Action> {
 
 object ActionRegistry {
     fun getActionOverride(context: Context, action: Action): Action {
+        // REVENTOR: external voice engines are not supported, always use the
+        // built-in Canary-based voice input
         return if(action == VoiceInputAction || action == SystemVoiceInputAction) {
-            val useSystemVoiceInput = context.getSetting(USE_SYSTEM_VOICE_INPUT)
-            if(useSystemVoiceInput) {
-                SystemVoiceInputAction
-            } else {
-                VoiceInputAction
-            }
+            VoiceInputAction
         } else {
             action
         }

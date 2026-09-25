@@ -179,7 +179,16 @@ tasks.register('updateContributors') {
     }
 }
 
+// REVENTOR: remove dictionaries for languages not supported by the bundled
+// voice recognition (English, German, Spanish, French only)
+tasks.register('removeUnsupportedDictionaries', Delete) {
+    delete 'java/res-large/raw/main_it.dict'
+    delete 'java/res-large/raw/main_pt_br.dict'
+    delete 'java/res-large/raw/main_ru.dict'
+}
+
 preBuild.dependsOn updateLocales
+preBuild.dependsOn removeUnsupportedDictionaries
 
 android {
     namespace 'org.futo.inputmethod.latin'

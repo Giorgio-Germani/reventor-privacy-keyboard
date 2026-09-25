@@ -243,6 +243,23 @@ fun CreditsScreen(navController: NavHostController = rememberNavController()) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
+                stringResource(R.string.credits_reventor_title),
+                style = Typography.Heading.MediumMl
+            )
+            Text(
+                stringResource(R.string.credits_reventor_body),
+                style = Typography.Body.Regular
+            )
+            NavigationItem(
+                title = stringResource(R.string.credits_reventor_upstream),
+                subtitle = "https://futo.tech",
+                style = NavigationItemStyle.ExternalLink,
+                navigate = {
+                    context.openURI("https://futo.tech/")
+                }
+            )
+
+            Text(
                 stringResource(R.string.credits_menu_header_text),
                 style = Typography.Body.RegularMl
             )
