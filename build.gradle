@@ -207,8 +207,8 @@ android {
     defaultConfig {
         minSdk 24
         targetSdk 35
-        versionName getVersionName()
-        versionCode getVersionCode()
+        versionName "1.0.0"
+        versionCode 1
 
         applicationId 'org.futo.inputmethod.latin'
         testApplicationId 'org.futo.inputmethod.latin.tests'

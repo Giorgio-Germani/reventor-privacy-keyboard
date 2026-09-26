@@ -48,6 +48,21 @@ class CanaryRunner(private val context: Context) {
 
     suspend fun preload() = withContext(inferenceContext) {
         obtainLidModel()
+        // Warm up the recognizer itself so a broken model surfaces here
+        // (and triggers the whisper fallback) instead of mid-dictation
+        obtainRecognizer(CanaryLanguages.first().toWhisperString())
+    }
+
+    /**
+     * Drops the loaded ONNX recognizer so the next run reloads it from the
+     * bundled assets. Used for self-healing after inference errors.
+     */
+    suspend fun invalidate() = withContext(inferenceContext) {
+        try {
+            recognizer?.release()
+        } catch(_: Exception) {}
+        recognizer = null
+        recognizerLang = null
     }
 
     private suspend fun obtainLidModel(): org.futo.voiceinput.shared.ggml.WhisperGGML {
@@ -123,14 +138,21 @@ class CanaryRunner(private val context: Context) {
         )
         Log.d("CanaryRunner", "Detected language: $srcLang")
 
-        val recognizer = obtainRecognizer(srcLang)
-        val stream = recognizer.createStream()
-        stream.acceptWaveform(samples, 16000)
-        recognizer.decode(stream)
-        val result = recognizer.getResult(stream)
-        stream.release()
+        try {
+            val recognizer = obtainRecognizer(srcLang)
+            val stream = recognizer.createStream()
+            stream.acceptWaveform(samples, 16000)
+            recognizer.decode(stream)
+            val result = recognizer.getResult(stream)
+            stream.release()
 
-        result.text.trim()
+            result.text.trim()
+        } catch(e: Exception) {
+            // The recognizer may be in a broken state; drop it so the next
+            // dictation starts with a freshly loaded model
+            invalidate()
+            throw e
+        }
     }
 
     suspend fun close() = withContext(inferenceContext) {

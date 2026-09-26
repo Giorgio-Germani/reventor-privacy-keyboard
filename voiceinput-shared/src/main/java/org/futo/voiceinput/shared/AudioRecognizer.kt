@@ -576,11 +576,27 @@ class AudioRecognizer(
         yield()
         val outputText = try {
             if (canaryActive && !canaryFailed) {
-                canaryRunner.run(
-                    samples = floatArray,
-                    languages = settings.decodingConfiguration.languages,
-                    callback = runnerCallback
-                )
+                try {
+                    canaryRunner.run(
+                        samples = floatArray,
+                        languages = settings.decodingConfiguration.languages,
+                        callback = runnerCallback
+                    )
+                } catch(e: InferenceCancelledException) {
+                    throw e
+                } catch(e: Exception) {
+                    // Canary failed mid-run (e.g. engine error). Drop the
+                    // engine and fall back to whisper for this utterance
+                    // instead of failing the whole dictation.
+                    e.printStackTrace()
+                    canaryFailed = true
+                    modelRunner.run(
+                        floatArray,
+                        settings.modelRunConfiguration,
+                        settings.decodingConfiguration,
+                        runnerCallback
+                    ).trim()
+                }
             } else {
                 modelRunner.run(
                     floatArray,
@@ -592,6 +608,11 @@ class AudioRecognizer(
         }catch(e: InferenceCancelledException) {
             yield()
             return
+        } catch(e: Exception) {
+            // Last resort: never take the whole keyboard down with a
+            // recognition error - report an empty result instead
+            e.printStackTrace()
+            ""
         }
 
         val text = when {
