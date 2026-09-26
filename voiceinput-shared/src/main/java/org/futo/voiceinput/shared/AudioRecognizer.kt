@@ -36,14 +36,9 @@ import org.futo.voiceinput.shared.types.InferenceState
 import org.futo.voiceinput.shared.types.Language
 import org.futo.voiceinput.shared.types.MagnitudeState
 import org.futo.voiceinput.shared.types.ModelInferenceCallback
-import org.futo.voiceinput.shared.types.ModelLoader
-import org.futo.voiceinput.shared.canary.CanaryRunner
-import org.futo.voiceinput.shared.canary.canaryApplies
-import org.futo.voiceinput.shared.ui.MicrophoneDeviceState
 import org.futo.voiceinput.shared.whisper.DecodingConfiguration
-import org.futo.voiceinput.shared.whisper.ModelManager
-import org.futo.voiceinput.shared.whisper.MultiModelRunConfiguration
-import org.futo.voiceinput.shared.whisper.MultiModelRunner
+import org.futo.voiceinput.shared.canary.CanaryRunner
+import org.futo.voiceinput.shared.ui.MicrophoneDeviceState
 import org.futo.voiceinput.shared.whisper.isBlankResult
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
@@ -87,34 +82,22 @@ data class RecordingSettings(
 )
 
 data class AudioRecognizerSettings(
-    val modelRunConfiguration: MultiModelRunConfiguration,
     val decodingConfiguration: DecodingConfiguration,
-    val recordingConfiguration: RecordingSettings,
-    val useCanary: Boolean = true
+    val recordingConfiguration: RecordingSettings
 )
-
-class ModelDoesNotExistException(val models: List<ModelLoader>) : Throwable()
 
 class AudioRecognizer(
     private val context: Context,
     private val lifecycleScope: LifecycleCoroutineScope,
-    modelManager: ModelManager,
     private val listener: AudioRecognizerListener,
     private val settings: AudioRecognizerSettings
 ) {
     private var isRecording = false
     private var recorder: AudioRecord? = null
 
-    private val modelRunner = MultiModelRunner(modelManager)
+    // REVENTOR: Canary is the only transcription engine. The small whisper
+    // model in CanaryRunner is used solely for language identification.
     private val canaryRunner = CanaryRunner(context)
-
-    // Canary is used whenever all enabled languages are among the ones the
-    // bundled canary-180m-flash model supports; it detects the language itself.
-    private val canaryActive = settings.useCanary && canaryApplies(settings.decodingConfiguration.languages)
-
-    // Set if loading the canary engine failed at runtime; falls back to whisper
-    @Volatile
-    private var canaryFailed = false
 
     private val canExpandSpace = settings.recordingConfiguration.canExpandSpace
     private val useVAD = settings.recordingConfiguration.useVADAutoStop
@@ -204,29 +187,9 @@ class AudioRecognizer(
         }
     }
 
-    @Throws(ModelDoesNotExistException::class)
-    private fun verifyModelsExist() {
-        if (canaryActive) return
-
-        val modelsThatDoNotExist = mutableListOf<ModelLoader>()
-
-        if (!settings.modelRunConfiguration.primaryModel.exists(context)) {
-            modelsThatDoNotExist.add(settings.modelRunConfiguration.primaryModel)
-        }
-
-        for (model in settings.modelRunConfiguration.languageSpecificModels.values) {
-            if (!model.exists(context)) {
-                modelsThatDoNotExist.add(model)
-            }
-        }
-
-        if (modelsThatDoNotExist.isNotEmpty()) {
-            throw ModelDoesNotExistException(modelsThatDoNotExist)
-        }
-    }
-
     init {
-        verifyModelsExist()
+        // The Canary engine and its models are bundled with the app; nothing
+        // to verify or download.
     }
 
     fun reset() {
@@ -238,8 +201,6 @@ class AudioRecognizer(
 
         modelJob?.cancel()
         isRecording = false
-
-        modelRunner.cancelAll()
 
         unfocusAudio()
 
@@ -307,16 +268,13 @@ class AudioRecognizer(
     }
 
     private suspend fun preloadModels() {
-        if (canaryActive) {
-            try {
-                canaryRunner.preload()
-                return
-            } catch(e: Exception) {
-                e.printStackTrace()
-                canaryFailed = true
-            }
+        // Best effort: if loading fails here, run() will self-heal by
+        // reloading the engine
+        try {
+            canaryRunner.preload()
+        } catch(e: Exception) {
+            e.printStackTrace()
         }
-        modelRunner.preload(settings.modelRunConfiguration)
     }
 
     private fun expandSpaceIfAllowed(): Boolean {
@@ -575,42 +533,18 @@ class AudioRecognizer(
 
         yield()
         val outputText = try {
-            if (canaryActive && !canaryFailed) {
-                try {
-                    canaryRunner.run(
-                        samples = floatArray,
-                        languages = settings.decodingConfiguration.languages,
-                        callback = runnerCallback
-                    )
-                } catch(e: InferenceCancelledException) {
-                    throw e
-                } catch(e: Exception) {
-                    // Canary failed mid-run (e.g. engine error). Drop the
-                    // engine and fall back to whisper for this utterance
-                    // instead of failing the whole dictation.
-                    e.printStackTrace()
-                    canaryFailed = true
-                    modelRunner.run(
-                        floatArray,
-                        settings.modelRunConfiguration,
-                        settings.decodingConfiguration,
-                        runnerCallback
-                    ).trim()
-                }
-            } else {
-                modelRunner.run(
-                    floatArray,
-                    settings.modelRunConfiguration,
-                    settings.decodingConfiguration,
-                    runnerCallback
-                ).trim()
-            }
-        }catch(e: InferenceCancelledException) {
+            canaryRunner.run(
+                samples = floatArray,
+                languages = settings.decodingConfiguration.languages,
+                callback = runnerCallback
+            )
+        } catch(e: InferenceCancelledException) {
             yield()
             return
         } catch(e: Exception) {
-            // Last resort: never take the whole keyboard down with a
-            // recognition error - report an empty result instead
+            // Never take the whole keyboard down with a recognition error -
+            // the engine was already dropped by CanaryRunner and will be
+            // reloaded on the next dictation. Report an empty result instead.
             e.printStackTrace()
             ""
         }

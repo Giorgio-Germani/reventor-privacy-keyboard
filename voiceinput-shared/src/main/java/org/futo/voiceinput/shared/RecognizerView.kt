@@ -36,7 +36,6 @@ data class RecognizerViewSettings(
     val shouldShowInlinePartialResult: Boolean,
     val shouldAnimateBubble: Boolean,
 
-    val modelRunConfiguration: MultiModelRunConfiguration,
     val decodingConfiguration: DecodingConfiguration,
     val recordingConfiguration: RecordingSettings
 )
@@ -240,10 +239,8 @@ class RecognizerView(
     private val recognizer: AudioRecognizer = AudioRecognizer(
         context = context,
         lifecycleScope = lifecycleScope,
-        modelManager = modelManager,
         listener = audioRecognizerListener,
         settings = AudioRecognizerSettings(
-            modelRunConfiguration = settings.modelRunConfiguration,
             decodingConfiguration = settings.decodingConfiguration,
             recordingConfiguration = settings.recordingConfiguration
         )
