@@ -29,17 +29,15 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
-import org.futo.voiceinput.shared.ggml.InferenceCancelledException
-import org.futo.voiceinput.shared.ggml.InvalidModelException
+import org.futo.voiceinput.shared.InferenceCancelledException
+import org.futo.voiceinput.shared.isBlankResult
+import org.futo.voiceinput.shared.canary.CanaryRunner
 import org.futo.voiceinput.shared.types.AudioRecognizerListener
 import org.futo.voiceinput.shared.types.InferenceState
 import org.futo.voiceinput.shared.types.Language
 import org.futo.voiceinput.shared.types.MagnitudeState
 import org.futo.voiceinput.shared.types.ModelInferenceCallback
-import org.futo.voiceinput.shared.whisper.DecodingConfiguration
-import org.futo.voiceinput.shared.canary.CanaryRunner
 import org.futo.voiceinput.shared.ui.MicrophoneDeviceState
-import org.futo.voiceinput.shared.whisper.isBlankResult
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 import kotlin.math.min
@@ -82,7 +80,7 @@ data class RecordingSettings(
 )
 
 data class AudioRecognizerSettings(
-    val decodingConfiguration: DecodingConfiguration,
+    val language: Language,
     val recordingConfiguration: RecordingSettings
 )
 
@@ -95,12 +93,18 @@ class AudioRecognizer(
     private var isRecording = false
     private var recorder: AudioRecord? = null
 
-    // REVENTOR: Canary is the only transcription engine. The small whisper
-    // model in CanaryRunner is used solely for language identification.
+    // REVENTOR: Canary is the only transcription engine; the spoken language
+    // is chosen by the user rather than detected.
     private val canaryRunner = CanaryRunner(context)
 
     private val canExpandSpace = settings.recordingConfiguration.canExpandSpace
     private val useVAD = settings.recordingConfiguration.useVADAutoStop
+
+    private var language: Language = settings.language
+
+    fun setLanguage(language: Language) {
+        this.language = language
+    }
 
     private var floatSamples: FloatBuffer = FloatBuffer.allocate(16000 * 30)
     private var recorderJob: Job? = null
@@ -494,14 +498,7 @@ class AudioRecognizer(
 
         loadModelJob = lifecycleScope.launch {
             withContext(Dispatchers.Default) {
-                try {
-                    preloadModels()
-                } catch(_: InvalidModelException) {
-                    withContext(Dispatchers.Main) {
-                        reset()
-                        listener.modelLoadingFailed()
-                    }
-                }
+                preloadModels()
             }
         }
     }
@@ -509,10 +506,6 @@ class AudioRecognizer(
     private val runnerCallback: ModelInferenceCallback = object : ModelInferenceCallback {
         override fun updateStatus(state: InferenceState) {
             listener.decodingStatus(state)
-        }
-
-        override fun languageDetected(language: Language) {
-            listener.languageDetected(language)
         }
 
         override fun partialResult(string: String) {
@@ -535,7 +528,7 @@ class AudioRecognizer(
         val outputText = try {
             canaryRunner.run(
                 samples = floatArray,
-                languages = settings.decodingConfiguration.languages,
+                language = language,
                 callback = runnerCallback
             )
         } catch(e: InferenceCancelledException) {

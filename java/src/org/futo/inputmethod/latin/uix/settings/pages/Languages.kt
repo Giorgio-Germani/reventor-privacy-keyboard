@@ -248,11 +248,6 @@ fun LanguageSurface(
                 }
 
                 LanguageConfigurable(
-                    kind = FileKind.VoiceInput,
-                    selection = item.options.voiceInputModel
-                        ?: stringResource(R.string.language_settings_resource_none)
-                ) { onConfigurableSelected(FileKind.VoiceInput) }
-                LanguageConfigurable(
                     kind = FileKind.Dictionary,
                     selection = item.options.dictionary
                         ?: stringResource(R.string.language_settings_resource_none)
@@ -340,7 +335,6 @@ fun LanguageSurfacePreview() {
                 languageName = "Language Name",
                 options = LanguageOptions(
                     "Model Name",
-                    "Model Name",
                     "Model Name"
                 ),
                 layouts = listOf(
@@ -355,7 +349,6 @@ fun LanguageSurfacePreview() {
 }
 
 data class LanguageOptions(
-    val voiceInputModel: String?,
     val dictionary: String?,
     val transformerModel: String?
 )
@@ -372,9 +365,7 @@ fun ConfirmResourceActionDialog(
     isCurrentlySet: Boolean,
     locale: Locale
 ) {
-    val hasBuiltInFallback = if (resourceKind == FileKind.VoiceInput) {
-        ResourceHelper.BuiltInVoiceInputFallbacks[locale.language] != null
-    } else if (resourceKind == FileKind.Dictionary) {
+    val hasBuiltInFallback = if (resourceKind == FileKind.Dictionary) {
         Dictionaries.getDictionaryIfExists(LocalContext.current, locale, Dictionaries.DictionaryKind.Any) != null
     } else {
         true
@@ -391,14 +382,12 @@ fun ConfirmResourceActionDialog(
             if (isCurrentlySet) {
                 Text(
                     text = when (resourceKind) {
-                        FileKind.VoiceInput -> stringResource(R.string.language_settings_resource_voice_input_selected)
                         FileKind.Transformer -> stringResource(R.string.language_settings_resource_transformer_selected)
                         FileKind.Dictionary -> stringResource(R.string.language_settings_resource_dictionary_selected)
                         FileKind.Invalid -> ""
                     } + if (!hasBuiltInFallback) {
                         "\n\n" +
                                 when (resourceKind) {
-                                    FileKind.VoiceInput -> stringResource(R.string.language_settings_resource_voice_input_selected_no_default_warning)
                                     FileKind.Transformer -> stringResource(R.string.language_settings_resource_transformer_selected_no_default_warning)
                                     FileKind.Dictionary -> stringResource(R.string.language_settings_resource_dictionary_selected_no_default_warning)
                                     FileKind.Invalid -> ""
@@ -410,7 +399,6 @@ fun ConfirmResourceActionDialog(
             } else {
                 Text(
                     text = when (resourceKind) {
-                        FileKind.VoiceInput -> stringResource(R.string.language_settings_resource_voice_input_selected_unset)
                         FileKind.Transformer -> stringResource(R.string.language_settings_resource_transformer_selected_unset)
                         FileKind.Dictionary -> stringResource(R.string.language_settings_resource_dictionary_selected_unset)
                         FileKind.Invalid -> ""
@@ -515,16 +503,6 @@ val LanguageSettingsBottom = listOf(
         style = NavigationItemStyle.Misc,
         navigate = { nav ->
             openModelImporter(nav.context)
-        },
-    ),
-    userSettingNavigationItem(
-        title = R.string.language_settings_explore_voice_input_models_online,
-        style = NavigationItemStyle.Misc,
-        navigate = { nav ->
-            nav.context.openURI(
-                FileKind.VoiceInput.getAddonUrlForLocale(null),
-                true
-            )
         },
     ),
     userSettingNavigationItem(
@@ -654,10 +632,6 @@ fun LanguagesScreen(navController: NavHostController = rememberNavController()) 
 
             val name = Subtypes.getName(subtypes.first())
 
-            val voiceInputModelName = ResourceHelper.tryFindingVoiceInputModelForLocale(
-                context,
-                locale
-            )?.name?.let { stringResource(it) }
             val dictionaryName = runBlocking {
                 ResourceHelper.findKeyForLocaleAndKind(
                     context,
@@ -687,7 +661,6 @@ fun LanguagesScreen(navController: NavHostController = rememberNavController()) 
                 }
 
             val options = LanguageOptions(
-                voiceInputModel = voiceInputModelName,
                 dictionary = dictionaryName,
                 transformerModel = transformerName
             )

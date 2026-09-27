@@ -73,9 +73,6 @@ import org.futo.inputmethod.latin.utils.SubtypeLocaleUtils
 import org.futo.inputmethod.latin.utils.ZipFileHelper
 import org.futo.inputmethod.latin.xlm.ModelPaths
 import org.futo.inputmethod.updates.openURI
-import org.futo.voiceinput.shared.BUILTIN_ENGLISH_MODEL
-import org.futo.voiceinput.shared.types.ModelFileFile
-import org.futo.voiceinput.shared.types.ModelLoader
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
@@ -243,14 +240,12 @@ fun ImportScreen(fileKind: FileKindAndInfo, onApply: (FileKindAndInfo, InputMeth
 }
 
 enum class FileKind {
-    VoiceInput,
     Transformer,
     Dictionary,
     Invalid;
 
     fun getAddonUrlForLocale(locale: Locale?): String {
         return when(this) {
-            VoiceInput -> "https://keyboard.futo.tech/voice-input-models?locale=${locale?.toLanguageTag() ?: ""}"
             Transformer -> "https://keyboard.futo.tech/models?locale=${locale?.toLanguageTag() ?: ""}"
             Dictionary -> "https://keyboard.futo.tech/dictionaries?locale=${locale?.toLanguageTag() ?: ""}"
             Invalid -> "https://keyboard.futo.tech/"
@@ -260,7 +255,6 @@ enum class FileKind {
 
 fun FileKind.kindTitle(resources: Resources): String {
     return resources.getString(when(this) {
-        FileKind.VoiceInput -> R.string.file_kind_voice_input_model
         FileKind.Transformer -> R.string.file_kind_transformer_model
         FileKind.Dictionary -> R.string.file_kind_dictionary
         FileKind.Invalid -> R.string.file_kind_invalid_file
@@ -269,7 +263,6 @@ fun FileKind.kindTitle(resources: Resources): String {
 
 fun FileKind.icon(): Int {
     return when(this) {
-        FileKind.VoiceInput -> R.drawable.mic
         FileKind.Transformer -> R.drawable.cpu
         FileKind.Dictionary -> R.drawable.book
         FileKind.Invalid -> R.drawable.close
@@ -278,7 +271,6 @@ fun FileKind.icon(): Int {
 
 fun FileKind.extension(): String {
     return when(this) {
-        FileKind.VoiceInput -> ".bin"
         FileKind.Transformer -> ".gguf"
         FileKind.Dictionary -> ".dict"
         FileKind.Invalid -> ""
@@ -499,7 +491,6 @@ fun determineFileKind(inputStream: InputStream): FileKindAndInfo {
     val array = ByteArray(4)
     inputStream.read(array)
 
-    val voiceInputMagic = 0x6c6d6767.toUInt()
     val transformerMagic = 0x47475546.toUInt()
     val dictionaryMagic = 0x9bc13afe.toUInt()
     val mozcMagic = 0xef4d4f5a.toUInt()
@@ -507,7 +498,6 @@ fun determineFileKind(inputStream: InputStream): FileKindAndInfo {
     val magic = ByteBuffer.wrap(array).getInt().toUInt()
 
     return when {
-        magic == voiceInputMagic -> FileKindAndInfo(FileKind.VoiceInput, null, null)
         magic == transformerMagic -> FileKindAndInfo(FileKind.Transformer, null, null)
         magic == mozcMagic -> {
             FileKindAndInfo(
@@ -535,10 +525,6 @@ fun determineFileKind(inputStream: InputStream): FileKindAndInfo {
 }
 
 object ResourceHelper {
-    val BuiltInVoiceInputFallbacks = mapOf(
-        "en" to BUILTIN_ENGLISH_MODEL
-    )
-
     fun findKeyForLocaleAndKind(context: Context, locale: Locale, kind: FileKind): String? {
         val keysToTry = listOf(
             locale.toString(),
@@ -566,13 +552,6 @@ object ResourceHelper {
         }
 
         return file
-    }
-
-    fun tryFindingVoiceInputModelForLocale(context: Context, locale: Locale): ModelLoader? {
-        val file = runBlocking { findFileForKind(context, locale, FileKind.VoiceInput) }
-            ?: return BuiltInVoiceInputFallbacks[locale.language]
-
-        return ModelFileFile(R.string.settings_external_model_name, file)
     }
 
     fun tryOpeningCustomMainDictionaryForLocale(context: Context, locale: Locale): ReadOnlyBinaryDictionary? {

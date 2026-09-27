@@ -8,12 +8,10 @@ import com.k2fsa.sherpa.onnx.OfflineModelConfig
 import com.k2fsa.sherpa.onnx.OfflineRecognizer
 import com.k2fsa.sherpa.onnx.OfflineRecognizerConfig
 import kotlinx.coroutines.withContext
-import org.futo.voiceinput.shared.ggml.BailLanguageException
-import org.futo.voiceinput.shared.ggml.DecodingMode
-import org.futo.voiceinput.shared.ggml.inferenceContext
+import org.futo.voiceinput.shared.InferenceCancelledException
+import org.futo.voiceinput.shared.inferenceContext
 import org.futo.voiceinput.shared.types.InferenceState
 import org.futo.voiceinput.shared.types.Language
-import org.futo.voiceinput.shared.types.ModelBuiltInAsset
 import org.futo.voiceinput.shared.types.ModelInferenceCallback
 import org.futo.voiceinput.shared.types.toWhisperString
 
@@ -28,28 +26,19 @@ val CanaryLanguages: Set<Language> = setOf(
 private const val CANARY_ENCODER_ASSET = "encoder.int8.onnx"
 private const val CANARY_DECODER_ASSET = "decoder.int8.onnx"
 private const val CANARY_TOKENS_ASSET = "tokens.txt"
-private const val LID_MODEL_ASSET = "ggml-tiny-q8_0.bin"
-private const val LID_SAMPLE_COUNT = 16000 * 5
-
-fun canaryApplies(languages: Set<Language>): Boolean =
-    languages.isNotEmpty() && languages.all { it in CanaryLanguages }
 
 /**
  * Speech recognition engine using NVIDIA Canary 180M Flash (via sherpa-onnx).
- * Canary does not perform language identification itself, so the first few
- * seconds of audio are run through a small multilingual whisper model to
- * detect the language before transcription.
+ * Canary always transcribes into the language it is given; the user picks
+ * which language they speak in and it is passed in with every run.
  */
 class CanaryRunner(private val context: Context) {
-    private val lidLoader = ModelBuiltInAsset(name = 0, ggmlFile = LID_MODEL_ASSET)
-    private var lidModel: org.futo.voiceinput.shared.ggml.WhisperGGML? = null
     private var recognizer: OfflineRecognizer? = null
     private var recognizerLang: String? = null
 
     suspend fun preload() = withContext(inferenceContext) {
-        obtainLidModel()
-        // Warm up the recognizer itself so a broken model surfaces here
-        // (and triggers the whisper fallback) instead of mid-dictation
+        // Warm up the recognizer so a broken model surfaces here instead of
+        // mid-dictation. A differing chosen language simply reloads it.
         obtainRecognizer(CanaryLanguages.first().toWhisperString())
     }
 
@@ -63,11 +52,6 @@ class CanaryRunner(private val context: Context) {
         } catch(_: Exception) {}
         recognizer = null
         recognizerLang = null
-    }
-
-    private suspend fun obtainLidModel(): org.futo.voiceinput.shared.ggml.WhisperGGML {
-        lidModel?.let { return it }
-        return lidLoader.loadGGML(context).also { lidModel = it }
     }
 
     private fun obtainRecognizer(srcLang: String): OfflineRecognizer {
@@ -95,51 +79,17 @@ class CanaryRunner(private val context: Context) {
         }
     }
 
-    private suspend fun detectLanguage(samples: FloatArray, candidateLanguages: Set<Language>): String {
-        val whisperStrings = candidateLanguages.map { it.toWhisperString() }.toTypedArray()
-        val lidSamples = samples.copyOf(minOf(samples.size, LID_SAMPLE_COUNT))
-
-        val lid = obtainLidModel()
-        try {
-            // All candidate languages are passed as bail languages, so inference
-            // stops as soon as whisper has decided on a language and reports it
-            // via BailLanguageException.
-            lid.infer(
-                samples = lidSamples,
-                prompt = "",
-                languages = whisperStrings,
-                bailLanguages = whisperStrings,
-                decodingMode = DecodingMode.Greedy,
-                suppressNonSpeechTokens = false,
-                partialResultCallback = { },
-            )
-        } catch (e: BailLanguageException) {
-            return e.language
-        }
-        // Should not happen - every candidate language is a bail language
-        throw IllegalStateException("Language detection did not determine a language")
-    }
-
-    @Throws(org.futo.voiceinput.shared.ggml.InferenceCancelledException::class)
+    @Throws(InferenceCancelledException::class)
     suspend fun run(
         samples: FloatArray,
-        languages: Set<Language>,
+        language: Language,
         callback: ModelInferenceCallback,
     ): String = withContext(inferenceContext) {
         callback.updateStatus(InferenceState.Encoding)
-
-        // Always detect the language over all supported languages, even if a
-        // single language is configured: the user should never have to announce
-        // which language they speak.
-        val srcLang = detectLanguage(samples, CanaryLanguages)
-
-        callback.languageDetected(
-            languages.firstOrNull { it.toWhisperString() == srcLang } ?: Language.English
-        )
-        Log.d("CanaryRunner", "Detected language: $srcLang")
+        Log.d("CanaryRunner", "Transcribing as ${language.toWhisperString()}")
 
         try {
-            val recognizer = obtainRecognizer(srcLang)
+            val recognizer = obtainRecognizer(language.toWhisperString())
             val stream = recognizer.createStream()
             stream.acceptWaveform(samples, 16000)
             recognizer.decode(stream)
@@ -159,7 +109,5 @@ class CanaryRunner(private val context: Context) {
         recognizer?.release()
         recognizer = null
         recognizerLang = null
-        lidModel?.close()
-        lidModel = null
     }
 }

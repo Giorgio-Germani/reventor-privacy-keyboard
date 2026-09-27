@@ -27,35 +27,13 @@ import org.futo.voiceinput.shared.ui.MicrophoneDeviceState
 import org.futo.voiceinput.shared.ui.PartialDecodingResult
 import org.futo.voiceinput.shared.ui.RecognizeLoadingCircle
 import org.futo.voiceinput.shared.ui.RecognizeMicError
-import org.futo.voiceinput.shared.whisper.DecodingConfiguration
-import org.futo.voiceinput.shared.whisper.ModelManager
-import org.futo.voiceinput.shared.whisper.MultiModelRunConfiguration
 
 data class RecognizerViewSettings(
-    val shouldShowVerboseFeedback: Boolean,
     val shouldShowInlinePartialResult: Boolean,
     val shouldAnimateBubble: Boolean,
 
-    val decodingConfiguration: DecodingConfiguration,
+    val language: Language,
     val recordingConfiguration: RecordingSettings
-)
-
-private val VerboseAnnotations = hashMapOf(
-    InferenceState.ExtractingMel to R.string.extracting_features,
-    InferenceState.LoadingModel to R.string.loading_model,
-    InferenceState.Encoding to R.string.processing,
-    InferenceState.DecodingLanguage to R.string.decoding,
-    InferenceState.SwitchingModel to R.string.switching_model,
-    InferenceState.DecodingStarted to R.string.decoding
-)
-
-private val DefaultAnnotations = hashMapOf(
-    InferenceState.ExtractingMel to R.string.processing,
-    InferenceState.LoadingModel to R.string.processing,
-    InferenceState.Encoding to R.string.processing,
-    InferenceState.DecodingLanguage to R.string.processing,
-    InferenceState.SwitchingModel to R.string.switching_model,
-    InferenceState.DecodingStarted to R.string.processing
 )
 
 interface RecognizerViewListener {
@@ -77,8 +55,7 @@ class RecognizerView(
     private val context: Context,
     private val listener: RecognizerViewListener,
     private val settings: RecognizerViewSettings,
-    lifecycleScope: LifecycleCoroutineScope,
-    modelManager: ModelManager
+    lifecycleScope: LifecycleCoroutineScope
 ) {
     private val magnitudeState = mutableFloatStateOf(0.0f)
     private val statusState = mutableStateOf(MagnitudeState.NOT_TALKED_YET)
@@ -158,6 +135,11 @@ class RecognizerView(
         recognizer.cancel()
     }
 
+    /** Changes the language the next dictation is transcribed as. */
+    fun setLanguage(language: Language) {
+        recognizer.setLanguage(language)
+    }
+
     private val audioRecognizerListener = object : AudioRecognizerListener {
         override fun cancelled() {
             listener.cancelled()
@@ -165,10 +147,6 @@ class RecognizerView(
 
         override fun finished(result: String) {
             listener.finished(result)
-        }
-
-        override fun languageDetected(language: Language) {
-            // TODO
         }
 
         override fun modelLoadingFailed() {
@@ -186,14 +164,7 @@ class RecognizerView(
 
 
         override fun decodingStatus(status: InferenceState) {
-            val text = context.getString(
-                when (settings.shouldShowVerboseFeedback) {
-                    true -> VerboseAnnotations[status]!!
-                    false -> DefaultAnnotations[status]!!
-                }
-            )
-
-            loadingCircleText.value = text
+            loadingCircleText.value = context.getString(R.string.processing)
             currentViewState.value = CurrentView.LoadingCircle
         }
 
@@ -241,7 +212,7 @@ class RecognizerView(
         lifecycleScope = lifecycleScope,
         listener = audioRecognizerListener,
         settings = AudioRecognizerSettings(
-            decodingConfiguration = settings.decodingConfiguration,
+            language = settings.language,
             recordingConfiguration = settings.recordingConfiguration
         )
     )

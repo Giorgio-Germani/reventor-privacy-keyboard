@@ -11,11 +11,9 @@ import org.futo.inputmethod.latin.R
 import org.futo.inputmethod.latin.uix.ANIMATE_BUBBLE
 import org.futo.inputmethod.latin.uix.AUDIO_FOCUS
 import org.futo.inputmethod.latin.uix.CAN_EXPAND_SPACE
-import org.futo.inputmethod.latin.uix.DISALLOW_SYMBOLS
 import org.futo.inputmethod.latin.uix.ENABLE_SOUND
 import org.futo.inputmethod.latin.uix.PREFER_BLUETOOTH
 import org.futo.inputmethod.latin.uix.SYSTEM_VOICE_INPUT_PACKAGE
-import org.futo.inputmethod.latin.uix.USE_PERSONAL_DICT
 import org.futo.inputmethod.latin.uix.USE_SYSTEM_VOICE_INPUT
 import org.futo.inputmethod.latin.uix.USE_VAD_AUTOSTOP
 import org.futo.inputmethod.latin.uix.settings.DropDownPickerSettingItem
@@ -72,12 +70,6 @@ val VoiceInputMenu = UserSettingsMenu(
          */
 
         userSettingToggleDataStore(
-            title = R.string.voice_input_settings_use_personal_dict,
-            subtitle = R.string.voice_input_settings_use_personal_dict_subtitle,
-            setting = USE_PERSONAL_DICT
-        ).copy(visibilityCheck = visibilityCheckNotSystemVoiceInput),
-
-        userSettingToggleDataStore(
             title = R.string.voice_input_settings_use_bluetooth_mic,
             subtitle = R.string.voice_input_settings_use_bluetooth_mic_subtitle,
             setting = PREFER_BLUETOOTH
@@ -87,11 +79,6 @@ val VoiceInputMenu = UserSettingsMenu(
             title = R.string.voice_input_settings_audio_focus,
             subtitle = R.string.voice_input_settings_audio_focus_subtitle,
             setting = AUDIO_FOCUS
-        ).copy(visibilityCheck = visibilityCheckNotSystemVoiceInput),
-
-        userSettingToggleDataStore(
-            title = R.string.voice_input_settings_suppress_symbols,
-            setting = DISALLOW_SYMBOLS
         ).copy(visibilityCheck = visibilityCheckNotSystemVoiceInput),
 
         userSettingToggleDataStore(

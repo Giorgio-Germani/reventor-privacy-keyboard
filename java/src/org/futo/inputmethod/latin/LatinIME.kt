@@ -72,6 +72,8 @@ import org.futo.inputmethod.latin.uix.KeyBordersSetting
 import org.futo.inputmethod.latin.uix.KeyHintsSetting
 import org.futo.inputmethod.latin.uix.KeyboardColorScheme
 import org.futo.inputmethod.latin.uix.SUGGESTION_BLACKLIST
+import org.futo.inputmethod.latin.uix.VOICE_LANGUAGE
+import org.futo.inputmethod.latin.uix.VoiceLanguageState
 import org.futo.inputmethod.latin.uix.SettingsKey
 import org.futo.inputmethod.latin.uix.THEME_KEY
 import org.futo.inputmethod.latin.uix.UixManager
@@ -463,6 +465,15 @@ class LatinIME : InputMethodServiceCompose(), LatinIMELegacy.SuggestionStripCont
         launchJob {
             getSettingFlow(SubtypesSetting).collect {
                 Subtypes.updateLanguageOnSpaceBarVisibility(this@LatinIME)
+            }
+        }
+
+        // Keep the spacebar's voice input language label in sync; the
+        // collector also fires once with the current value on startup.
+        launchJob {
+            getSettingFlow(VOICE_LANGUAGE).collect {
+                VoiceLanguageState.refresh(this@LatinIME)
+                invalidateKeyboard()
             }
         }
 

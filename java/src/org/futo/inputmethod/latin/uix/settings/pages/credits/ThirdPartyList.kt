@@ -21,15 +21,8 @@ val ThirdPartyList: List<ThirdPartyItem> = listOf(
         License.Apache2
     ),
     TP(
-        "OpenAI Whisper",
-        "Voice Input powered by OpenAI Whisper",
-        "https://github.com/openai/whisper",
-        "Copyright (c) 2022 OpenAI",
-        License.Apache2
-    ),
-    TP(
         "ggml projects",
-        "whisper.cpp, llama.cpp, ggml",
+        "llama.cpp, ggml",
         "https://ggml.ai",
         "Copyright (c) 2023 Georgi Gerganov",
         License.MIT

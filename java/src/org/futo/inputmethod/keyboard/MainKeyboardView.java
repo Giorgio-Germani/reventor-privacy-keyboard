@@ -54,6 +54,7 @@ import org.futo.inputmethod.keyboard.internal.TimerHandler;
 import org.futo.inputmethod.latin.AudioAndHapticFeedbackManager;
 import org.futo.inputmethod.latin.Subtypes;
 import org.futo.inputmethod.latin.uix.DynamicThemeProvider;
+import org.futo.inputmethod.latin.uix.VoiceLanguageState;
 import org.futo.inputmethod.latin.R;
 import org.futo.inputmethod.latin.SuggestedWords;
 import org.futo.inputmethod.latin.common.Constants;
@@ -856,6 +857,18 @@ public final class MainKeyboardView extends KeyboardView implements DrawingProxy
         return "";
     }
 
+    // Layout voice input language on spacebar; shown permanently so the user
+    // can verify which language dictation will use before starting to speak.
+    private String layoutVoiceLanguageOnSpacebar(final Paint paint, final int width) {
+        final String name = VoiceLanguageState.currentName();
+        if (name.isEmpty()) {
+            return "";
+        }
+
+        paint.setTextScaleX(1.0f);
+        return fitsTextIntoWidth(width, name, paint) ? name : "";
+    }
+
     private void drawLanguageOnSpacebar(final Key key, final Canvas canvas, final Paint paint, final int color) {
         final Keyboard keyboard = getKeyboard();
         if (keyboard == null) {
@@ -873,7 +886,12 @@ public final class MainKeyboardView extends KeyboardView implements DrawingProxy
         paint.setTextAlign(Align.CENTER);
         paint.setTypeface(mDrawableProvider.selectKeyTypeface(Typeface.DEFAULT));
         paint.setTextSize(mLanguageOnSpacebarTextSize);
-        final String language = layoutLanguageOnSpacebar(paint, keyboard.mId.mLocale, width, key.getWidth());
+        // REVENTOR: at rest, show the voice input language instead of the
+        // keyboard language; during a language swipe, fall back to the
+        // keyboard language switch preview.
+        final String language = (mLanguageSwipeProgress == 0.0f)
+                ? layoutVoiceLanguageOnSpacebar(paint, width)
+                : layoutLanguageOnSpacebar(paint, keyboard.mId.mLocale, width, key.getWidth());
         // Draw language text with shadow
         final float descent = paint.descent();
         final float textHeight = -paint.ascent() + descent;

@@ -46,6 +46,8 @@
 
     <!-- For voice input action -->
     <string name="action_voice_input_title">Voice Input</string>
+    <!-- Shown when long-pressing the mic to cycle the spoken language -->
+    <string name="voice_input_language_toast">Voice input language: <xliff:g name="language" example="English">%1$s</xliff:g></string>
     <!-- Same as the one above but it uses the device's default system voice input instead of the built-in -->
     <string name="action_system_voice_input_title">Voice Input (System)</string>
     <string name="action_voice_input_no_model_for_language_x_installed">No voice input model installed for <xliff:g name="language" example="español">%s</xliff:g>, tap to check options?</string>
