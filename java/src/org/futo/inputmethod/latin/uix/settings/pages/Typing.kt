@@ -110,6 +110,8 @@ import org.futo.inputmethod.latin.uix.settings.LocalSharedPrefsCache
 import org.futo.inputmethod.latin.uix.settings.NavigationItemStyle
 import org.futo.inputmethod.latin.uix.settings.PrimarySettingToggleDataStoreItem
 import org.futo.inputmethod.latin.uix.settings.ScreenTitle
+import org.futo.inputmethod.latin.uix.settings.InfoSurface
+import org.futo.inputmethod.latin.uix.settings.InfoSurfaceHeading
 import org.futo.inputmethod.latin.uix.settings.ScrollableList
 import org.futo.inputmethod.latin.uix.settings.SettingItem
 import org.futo.inputmethod.latin.uix.settings.SettingRadio
@@ -201,10 +203,10 @@ fun ResizeScreen(navController: NavHostController = rememberNavController()) {
         ScrollableList {
             ScreenTitle(stringResource(R.string.size_settings_title), showBack = true, navController)
 
-            PaymentSurface(
+            InfoSurface(
                 isPrimary = false,
             ) {
-                PaymentSurfaceHeading(title = stringResource(R.string.settings_tip))
+                InfoSurfaceHeading(title = stringResource(R.string.settings_tip))
 
                 Text(
                     buildAnnotatedString {

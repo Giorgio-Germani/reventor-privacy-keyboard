@@ -244,14 +244,6 @@ android {
     }
 
 
-    final def crashReportPropertiesFile = rootProject.file("crashreporting.properties")
-    final def crashReportProperties = new Properties()
-    if (crashReportPropertiesFile.exists()) {
-        crashReportProperties.load(new FileInputStream(crashReportPropertiesFile))
-    } else {
-        project.logger.lifecycle('crashreporting.properties not found, crash reporting will be disabled')
-    }
-
 
     buildTypes {
         debug {
@@ -265,27 +257,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig releaseSigning
         }
-
-        buildTypes.each {
-            if (crashReportPropertiesFile.exists()) {
-                it.buildConfigField "boolean", "ENABLE_ACRA", crashReportProperties['acraEnabled']
-                it.buildConfigField "String", "ACRA_URL", crashReportProperties['acraUrl']
-                it.buildConfigField "String", "ACRA_USER", crashReportProperties['acraUser']
-                it.buildConfigField "String", "ACRA_PASSWORD", crashReportProperties['acraPassword']
-            } else {
-                it.buildConfigField "boolean", "ENABLE_ACRA", "false"
-                it.buildConfigField "String", "ACRA_URL", "\"\""
-                it.buildConfigField "String", "ACRA_USER", "\"\""
-                it.buildConfigField "String", "ACRA_PASSWORD", "\"\""
-            }
-
-            //it.buildConfigField "String", "FUTOPAY_URL", "\"https://pay.futo.org/api/PaymentPortal?product=voiceinput&success=futo-keyboard%3a%2f%2flicense%2factivate\""
-            it.buildConfigField "String", "FUTOPAY_URL", "\"https://pay2.futo.org/checkout/polar/futo-keyboard/futo-keyboard-voiceinput/checkout-ready?success=redirect-to-organization-page\""
-            it.buildConfigField "String", "FUTOPAY_PRICE", "\"~\$6.99\""
-
-            it.buildConfigField "String", "GOOGLEPAY_URL", "\"https://play.google.com/store/apps/details?id=org.futo.keyboardpayment\""
-            it.buildConfigField "String", "GOOGLEPAY_PRICE", "\"~\$11.99\""
-        }
     }
 
     flavorDimensions = ["buildType"]
@@ -297,22 +268,16 @@ android {
             versionNameSuffix "-unstable"
 
             buildConfigField "boolean", "IS_PLAYSTORE_BUILD", "false"
-            buildConfigField "boolean", "UPDATE_CHECKING", "true"
-            buildConfigField "boolean", "UPDATE_CHECKING_NETWORK", "false"
             buildConfigField "String", "BRANCH", "\"${getBranch()}\""
             getIsDefault().set(true)
 
-            buildConfigField "String", "PAYMENT_PRICE", "FUTOPAY_PRICE"
         }
 
         stable {
             dimension "buildType"
             buildConfigField "boolean", "IS_PLAYSTORE_BUILD", "false"
-            buildConfigField "boolean", "UPDATE_CHECKING", "true"
-            buildConfigField "boolean", "UPDATE_CHECKING_NETWORK", "false"
             buildConfigField "String", "BRANCH", "\"${getBranch()}\""
 
-            buildConfigField "String", "PAYMENT_PRICE", "FUTOPAY_PRICE"
         }
 
         playstore {
@@ -321,11 +286,8 @@ android {
             versionNameSuffix "-playstore"
 
             buildConfigField "boolean", "IS_PLAYSTORE_BUILD", "true"
-            buildConfigField "boolean", "UPDATE_CHECKING", "false"
-            buildConfigField "boolean", "UPDATE_CHECKING_NETWORK", "false"
             buildConfigField "String", "BRANCH", "\"${getBranch()}\""
 
-            buildConfigField "String", "PAYMENT_PRICE", "GOOGLEPAY_PRICE"
         }
     }
 
@@ -433,10 +395,6 @@ dependencies {
     implementation 'androidx.autofill:autofill:1.1.0'
     implementation 'androidx.window:window:1.3.0'
 
-    stableImplementation 'ch.acra:acra-mail:5.11.1'
-    stableImplementation 'ch.acra:acra-dialog:5.11.1'
-    unstableImplementation 'ch.acra:acra-mail:5.11.1'
-    unstableImplementation 'ch.acra:acra-dialog:5.11.1'
 
     implementation 'sh.calvin.reorderable:reorderable:3.0.0'
 

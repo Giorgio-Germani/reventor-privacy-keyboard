@@ -74,6 +74,7 @@ import org.futo.inputmethod.latin.uix.KeyboardColorScheme
 import org.futo.inputmethod.latin.uix.SUGGESTION_BLACKLIST
 import org.futo.inputmethod.latin.uix.VOICE_LANGUAGE
 import org.futo.inputmethod.latin.uix.VoiceLanguageState
+import org.futo.voiceinput.shared.types.getLanguageFromWhisperString
 import org.futo.inputmethod.latin.uix.SettingsKey
 import org.futo.inputmethod.latin.uix.THEME_KEY
 import org.futo.inputmethod.latin.uix.UixManager
@@ -94,7 +95,6 @@ import org.futo.inputmethod.latin.uix.theme.getThemeOption
 import org.futo.inputmethod.latin.uix.theme.orDefault
 import org.futo.inputmethod.latin.uix.theme.presets.DefaultDarkScheme
 import org.futo.inputmethod.latin.utils.JniUtils
-import org.futo.inputmethod.updates.scheduleUpdateCheckingJob
 import org.futo.inputmethod.v2keyboard.ComputedKeyboardSize
 import org.futo.inputmethod.v2keyboard.FloatingKeyboardSize
 import org.futo.inputmethod.v2keyboard.KeyboardSettings
@@ -410,9 +410,6 @@ class LatinIME : InputMethodServiceCompose(), LatinIMELegacy.SuggestionStripCont
         imeManager.onCreate()
         latinIMELegacy.onCreate()
 
-        scheduleUpdateCheckingJob(this)
-        launchJob { uixManager.showUpdateNoticeIfNeeded() }
-
         launchJob {
             getSettingFlow(THEME_KEY).collect {
                 val themeOption = getThemeOption(this@LatinIME, it).orDefault(this@LatinIME)
@@ -477,12 +474,6 @@ class LatinIME : InputMethodServiceCompose(), LatinIMELegacy.SuggestionStripCont
             }
         }
 
-        launchJob {
-            dataStore.data.collect {
-                CrashLoggingApplication.logPreferences(it)
-            }
-        }
-
         // Listen to size changes
         launchJob {
             val prev: MutableMap<KeyboardSizeSettingKind, String?> =
@@ -517,6 +508,16 @@ class LatinIME : InputMethodServiceCompose(), LatinIMELegacy.SuggestionStripCont
         val subtype = Subtypes.convertToSubtype(subtypeString)
         changeInputMethodSubtype(subtype)
         uixManager.updateLocale(Subtypes.getLocale(subtype))
+
+        // REVENTOR: switching the keyboard language also switches the language
+        // dictation uses, so the spacebar label always matches the layout.
+        // Keyboard languages Canary does not support keep the current voice
+        // language.
+        val voiceLanguage =
+            getLanguageFromWhisperString(Subtypes.getLocale(subtype).language)
+        if (voiceLanguage != null && voiceLanguage != VoiceLanguageState.current) {
+            VoiceLanguageState.set(this, voiceLanguage)
+        }
     }
 
     private var destroying = false
@@ -640,7 +641,6 @@ class LatinIME : InputMethodServiceCompose(), LatinIMELegacy.SuggestionStripCont
         onSizeMaybeUpdated()
         imeManager.onStartInput()
         latinIMELegacy.onStartInputView(info, restarting)
-        lifecycleScope.launch { uixManager.showUpdateNoticeIfNeeded() }
         updateColorsIfDynamicChanged()
         uixManager.updateEmojiTranslationsIfNeeded()
     }

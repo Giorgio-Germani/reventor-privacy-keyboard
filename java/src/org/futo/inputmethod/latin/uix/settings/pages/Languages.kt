@@ -40,6 +40,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import android.content.Context
+import android.content.Intent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
@@ -59,12 +61,13 @@ import org.futo.inputmethod.latin.uix.getSetting
 import org.futo.inputmethod.latin.uix.icon
 import org.futo.inputmethod.latin.uix.kindTitle
 import org.futo.inputmethod.latin.uix.namePreferenceKeyFor
+import org.futo.inputmethod.latin.uix.findActivity
+import org.futo.inputmethod.latin.uix.settings.IMPORT_RESOURCE_FILE_REQUEST
 import org.futo.inputmethod.latin.uix.settings.NavigationItemStyle
 import org.futo.inputmethod.latin.uix.settings.Route
 import org.futo.inputmethod.latin.uix.settings.ScreenTitle
 import org.futo.inputmethod.latin.uix.settings.Tip
 import org.futo.inputmethod.latin.uix.settings.UserSettingsMenu
-import org.futo.inputmethod.latin.uix.settings.pages.modelmanager.openModelImporter
 import org.futo.inputmethod.latin.uix.settings.useDataStore
 import org.futo.inputmethod.latin.uix.settings.useDataStoreValue
 import org.futo.inputmethod.latin.uix.settings.userSettingNavigationItem
@@ -74,8 +77,7 @@ import org.futo.inputmethod.latin.uix.theme.presets.DynamicDarkTheme
 import org.futo.inputmethod.latin.uix.urlEncode
 import org.futo.inputmethod.latin.utils.Dictionaries
 import org.futo.inputmethod.latin.utils.SubtypeLocaleUtils
-import org.futo.inputmethod.latin.xlm.ModelPaths
-import org.futo.inputmethod.updates.openURI
+import org.futo.inputmethod.latin.uix.openURI
 import java.util.Locale
 
 private val InputMethodSubtype.layoutSetName
@@ -252,11 +254,6 @@ fun LanguageSurface(
                     selection = item.options.dictionary
                         ?: stringResource(R.string.language_settings_resource_none)
                 ) { onConfigurableSelected(FileKind.Dictionary) }
-                LanguageConfigurable(
-                    kind = FileKind.Transformer,
-                    selection = item.options.transformerModel
-                        ?: stringResource(R.string.language_settings_resource_none)
-                ) { onConfigurableSelected(FileKind.Transformer) }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -334,8 +331,7 @@ fun LanguageSurfacePreview() {
             item = LanguageItem(
                 languageName = "Language Name",
                 options = LanguageOptions(
-                    "Model Name",
-                    "Model Name"
+                    "Dictionary Name"
                 ),
                 layouts = listOf(
                     InputMethodSubtype.InputMethodSubtypeBuilder().build() to "QWERTY",
@@ -349,8 +345,7 @@ fun LanguageSurfacePreview() {
 }
 
 data class LanguageOptions(
-    val dictionary: String?,
-    val transformerModel: String?
+    val dictionary: String?
 )
 
 @Composable
@@ -382,13 +377,11 @@ fun ConfirmResourceActionDialog(
             if (isCurrentlySet) {
                 Text(
                     text = when (resourceKind) {
-                        FileKind.Transformer -> stringResource(R.string.language_settings_resource_transformer_selected)
                         FileKind.Dictionary -> stringResource(R.string.language_settings_resource_dictionary_selected)
                         FileKind.Invalid -> ""
                     } + if (!hasBuiltInFallback) {
                         "\n\n" +
                                 when (resourceKind) {
-                                    FileKind.Transformer -> stringResource(R.string.language_settings_resource_transformer_selected_no_default_warning)
                                     FileKind.Dictionary -> stringResource(R.string.language_settings_resource_dictionary_selected_no_default_warning)
                                     FileKind.Invalid -> ""
                                 }
@@ -399,7 +392,6 @@ fun ConfirmResourceActionDialog(
             } else {
                 Text(
                     text = when (resourceKind) {
-                        FileKind.Transformer -> stringResource(R.string.language_settings_resource_transformer_selected_unset)
                         FileKind.Dictionary -> stringResource(R.string.language_settings_resource_dictionary_selected_unset)
                         FileKind.Invalid -> ""
                     }
@@ -511,16 +503,6 @@ val LanguageSettingsBottom = listOf(
         navigate = { nav ->
             nav.context.openURI(
                 FileKind.Dictionary.getAddonUrlForLocale(null),
-                true
-            )
-        },
-    ),
-    userSettingNavigationItem(
-        title = R.string.language_settings_explore_transformers_online,
-        style = NavigationItemStyle.Misc,
-        navigate = { nav ->
-            nav.context.openURI(
-                FileKind.Transformer.getAddonUrlForLocale(null),
                 true
             )
         },
@@ -653,16 +635,8 @@ fun LanguagesScreen(navController: NavHostController = rememberNavController()) 
                 null
             }
 
-            val transformerName =
-                runBlocking { ModelPaths.getModelOptions(context) }.get(locale.language)?.let {
-                    it.loadDetails()?.let {
-                        it.name + if (it.isUnsupported()) (" " + resources.getString(R.string.language_settings_resource_unsupported_indicator)) else ""
-                    }
-                }
-
             val options = LanguageOptions(
-                dictionary = dictionaryName,
-                transformerModel = transformerName
+                dictionary = dictionaryName
             )
 
 
@@ -695,11 +669,7 @@ fun LanguagesScreen(navController: NavHostController = rememberNavController()) 
                     }
                 },
                 onConfigurableSelected = { kind ->
-                    if (kind == FileKind.Transformer && transformerName != null) {
-                        navController.navigate("models")
-                    } else {
-                        deleteDialogInfo.value = DeleteInfo(locale, kind)
-                    }
+                    deleteDialogInfo.value = DeleteInfo(locale, kind)
                 },
                 onLayoutAdditionRequested = {
                     navController.navigate(Route.AddLayout(locale.toLanguageTag()))
@@ -727,4 +697,13 @@ fun LanguagesScreen(navController: NavHostController = rememberNavController()) 
             it.component()
         }
     }
+}
+
+fun openModelImporter(context: Context) {
+    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+        addCategory(Intent.CATEGORY_OPENABLE)
+        type = "application/octet-stream"
+    }
+
+    findActivity(context)!!.startActivityForResult(intent, IMPORT_RESOURCE_FILE_REQUEST)
 }

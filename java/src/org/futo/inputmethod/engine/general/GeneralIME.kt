@@ -46,8 +46,6 @@ import org.futo.inputmethod.latin.uix.SettingsKey
 import org.futo.inputmethod.latin.uix.actions.throwIfDebug
 import org.futo.inputmethod.latin.uix.getSetting
 import org.futo.inputmethod.latin.uix.isDirectBootUnlocked
-import org.futo.inputmethod.latin.utils.AsyncResultHolder
-import org.futo.inputmethod.latin.xlm.LanguageModelFacilitator
 import org.futo.inputmethod.v2keyboard.KeyboardLayoutSetV2
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -119,17 +117,6 @@ class GeneralIME(val helper: IMEHelper) : IMEInterface, WordLearner, SuggestionS
         helper.lifecycleScope
     )
 
-    private val languageModelFacilitator = LanguageModelFacilitator(
-        context = context,
-        inputLogic = inputLogic,
-        dictionaryFacilitator = dictionaryFacilitator,
-        settings = settings,
-        keyboardSwitcher = KeyboardSwitcher.getInstance(),
-        lifecycleScope = helper.lifecycleScope,
-        suggestionBlacklist = suggestionBlacklist,
-        suggestedWordsCallback = this
-    )
-
     override fun addToHistory(
         word: String,
         wasCapitalized: Boolean,
@@ -146,14 +133,6 @@ class GeneralIME(val helper: IMEHelper) : IMEInterface, WordLearner, SuggestionS
             ngramContext, timestamp,
             blockOffensive
         )
-
-        if (settings.current.mTransformerPredictionEnabled) {
-            languageModelFacilitator.addToHistory(
-                word, wasCapitalized,
-                ngramContext, timestamp,
-                blockOffensive, importance
-            )
-        }
     }
 
     override fun removeFromHistory(
@@ -165,12 +144,6 @@ class GeneralIME(val helper: IMEHelper) : IMEInterface, WordLearner, SuggestionS
         dictionaryFacilitator.unlearnFromUserHistory(
             word, ngramContext, timestamp, eventType
         )
-
-        if (settings.current.mTransformerPredictionEnabled) {
-            languageModelFacilitator.unlearnFromHistory(
-                word, ngramContext, timestamp, eventType
-            )
-        }
     }
 
 
@@ -209,7 +182,6 @@ class GeneralIME(val helper: IMEHelper) : IMEInterface, WordLearner, SuggestionS
     }
 
     override fun onCreate() {
-        languageModelFacilitator.launchProcessor()
         if (context.isDirectBootUnlocked) onDeviceUnlocked()
 
         suggestionBlacklist.init()
@@ -228,16 +200,9 @@ class GeneralIME(val helper: IMEHelper) : IMEInterface, WordLearner, SuggestionS
 
     override fun onDestroy() {
         dictionaryFacilitator.closeDictionaries()
-        languageModelFacilitator.saveHistoryLog()
-
-        runBlocking {
-            languageModelFacilitator.destroyModel()
-            languageModelFacilitator.close()
-        }
     }
 
     override fun onDeviceUnlocked() {
-        languageModelFacilitator.loadHistoryLog()
     }
 
     private val expandableExpandableCfg = ExpandableSuggestionBarConfiguration(true, false)
@@ -252,7 +217,6 @@ class GeneralIME(val helper: IMEHelper) : IMEInterface, WordLearner, SuggestionS
         resetDictionaryFacilitator()
         setNeutralSuggestionStrip()
         dictionaryFacilitator.onStartInput()
-        languageModelFacilitator.onStartInput()
         inputLogic.startInput(
             RichInputMethodManager.getInstance().combiningRulesExtraValueOfCurrentSubtype,
             settings.current
@@ -271,7 +235,6 @@ class GeneralIME(val helper: IMEHelper) : IMEInterface, WordLearner, SuggestionS
                 delay(5000L)
                 withContext(Dispatchers.Main) {
                     dictionaryFacilitator.flushUserHistoryDictionaries()
-                    languageModelFacilitator.saveHistoryLog()
                 }
             }
         }
@@ -462,67 +425,21 @@ class GeneralIME(val helper: IMEHelper) : IMEInterface, WordLearner, SuggestionS
     }
 
     var updateSuggestionJob: Job? = null
-    var lmUpdateJob: Job? = null
     private suspend fun updateSuggestionsDictionaryInternal(inputStyle: Int, sequenceNumber: Int) {
-        // This method returns null for us if LM is disabled
-        val predictionInputValues = languageModelFacilitator.makePredictionInputValues(inputStyle)
-
         var dictResult: SuggestedWords? = null
-        var lmResult: ArrayList<SuggestedWordInfo>? = null
-        if(predictionInputValues != null) {
-            // This runs asynchronously
-            val lmResultHolder = AsyncResultHolder<ArrayList<SuggestedWordInfo>?>("LMSuggest")
-            lmUpdateJob?.cancel()
-            lmUpdateJob = helper.lifecycleScope.launch(languageModelFacilitator.languageModelScope) {
-                val result = languageModelFacilitator.getLanguageModelSuggestions(predictionInputValues)
-                lmResultHolder.set(result ?: arrayListOf())
-            }
-
-            // This runs synchronously
-            inputLogic.getSuggestedWords(
-                settings.current,
-                helper.keyboardSwitcher.keyboard ?: return,
-                helper.keyboardShiftMode,
-                inputStyle,
-                sequenceNumber
-            ) { suggestedWords -> dictResult = suggestedWords }
-
-            // Wait for LM to report result
-            lmResult = lmResultHolder.get(null, 350L)
-            if(lmResult == null) languageModelFacilitator.reportTimeout()
-        } else {
-            inputLogic.getSuggestedWords(
-                settings.current,
-                helper.keyboardSwitcher.keyboard ?: return,
-                helper.keyboardShiftMode,
-                inputStyle,
-                sequenceNumber
-            ) { suggestedWords -> dictResult = suggestedWords }
-        }
+        inputLogic.getSuggestedWords(
+            settings.current,
+            helper.keyboardSwitcher.keyboard ?: return,
+            helper.keyboardShiftMode,
+            inputStyle,
+            sequenceNumber
+        ) { suggestedWords -> dictResult = suggestedWords }
 
         when {
-            !lmResult.isNullOrEmpty() && dictResult != null && predictionInputValues != null -> {
-                val processed = languageModelFacilitator.processAndMergeSuggestions(
-                    predictionInputValues,
-                    dictResult,
-                    lmResult
-                )
-                if(processed != null) {
-                    onGetSuggestedWords(processed, inputStyle, sequenceNumber)
-                } else {
-                    throwIfDebug(IllegalStateException(
-                        "The processAndMergeSuggestions method should not typically return null"
-                    ))
-
-                    onGetSuggestedWords(dictResult, inputStyle, sequenceNumber)
-                }
-            }
-
             dictResult != null -> {
                 onGetSuggestedWords(dictResult, inputStyle, sequenceNumber)
             }
 
-            // Note: we don't support LM results but not dict
             else -> {
                 setNeutralSuggestionStrip()
             }
@@ -554,13 +471,7 @@ class GeneralIME(val helper: IMEHelper) : IMEInterface, WordLearner, SuggestionS
 
         val seqId = sequenceId.incrementAndGet()
 
-        val delayTime = when {
-            // With transformer off keep 40ms static delay for legacy reasons (less battery use)
-            languageModelFacilitator.shouldPassThroughToLegacy() -> 40L
-
-            // On fast devices, prefer to wait less to improve responsiveness
-            else -> 40L.coerceAtMost(timeTakenToUpdate / 2).coerceAtLeast(16L)
-        }
+        val delayTime = 40L
 
         updateSuggestionJob = helper.lifecycleScope.launch {
             when(inputStyle) {
@@ -796,8 +707,6 @@ class GeneralIME(val helper: IMEHelper) : IMEInterface, WordLearner, SuggestionS
             add("composingText = ${inputLogic.mConnection.composingTextForDebug}")
             add("committedTextBeforeComposingText = ${inputLogic.mConnection.committedTextBeforeComposingTextForDebug}")
         }
-        add("LM.shouldPassThroughToLegacy = ${languageModelFacilitator.shouldPassThroughToLegacy()}")
-        add("LM.isTransformerDisabledDueToTimeout = ${languageModelFacilitator.isTransformerDisabled()}")
         add("expected cursor = ${inputLogic.mConnection.mExpectedSelStart}:${inputLogic.mConnection.mExpectedSelEnd}")
         add("dictionary loaded = ${dictionaryFacilitator.hasAtLeastOneInitializedMainDictionary()}, ${!dictionaryFacilitator.hasAtLeastOneUninitializedMainDictionary()}")
         add("autoCapsFlags = ${getCurrentAutoCapsState()}")

@@ -48,8 +48,6 @@ import org.futo.inputmethod.latin.uix.theme.ThemeOption
 import org.futo.inputmethod.latin.uix.theme.UixThemeAuto
 import org.futo.inputmethod.latin.uix.theme.getThemeOption
 import org.futo.inputmethod.latin.uix.theme.orDefault
-import org.futo.inputmethod.latin.xlm.ModelPaths
-import org.futo.inputmethod.updates.checkForUpdateAndSaveToPreferences
 import org.futo.inputmethod.v2keyboard.LayoutManager
 import java.io.File
 import kotlin.math.sqrt
@@ -83,7 +81,6 @@ private fun Context.isDoublePackage(): Boolean {
 }
 
 public const val IMPORT_RESOURCE_FILE_REQUEST = 71067309
-public const val EXPORT_GGUF_MODEL_REQUEST = 80595439
 
 
 class SettingsActivity : ComponentActivity(), DynamicThemeProviderOwner {
@@ -227,10 +224,6 @@ class SettingsActivity : ComponentActivity(), DynamicThemeProviderOwner {
         }
 
         lifecycleScope.launch {
-            checkForUpdateAndSaveToPreferences(applicationContext)
-        }
-
-        lifecycleScope.launch {
             getSettingFlow(THEME_KEY).collect {
                 val themeOption = getThemeOption(this@SettingsActivity, it).orDefault(this@SettingsActivity)
 
@@ -298,14 +291,6 @@ class SettingsActivity : ComponentActivity(), DynamicThemeProviderOwner {
                 )
                 intent.setData(uri)
                 startActivity(intent)
-            }
-        } else if(requestCode == EXPORT_GGUF_MODEL_REQUEST && fileBeingSaved != null) {
-            data?.data?.also { uri ->
-                ModelPaths.exportModel(this, uri, fileBeingSaved!!)
-                navController.navigateToInfo(
-                    "Model Exported",
-                    "Model saved to file"
-                )
             }
         } else if(requestCode == EXPORT_SETTINGS_REQUEST) {
             lifecycleScope.launch {

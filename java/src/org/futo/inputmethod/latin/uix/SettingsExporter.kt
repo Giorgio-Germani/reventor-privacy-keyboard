@@ -47,7 +47,6 @@ import org.futo.inputmethod.latin.uix.actions.clipboard.clipboardFile
 import org.futo.inputmethod.latin.uix.settings.ScreenTitle
 import org.futo.inputmethod.latin.uix.settings.ScrollableList
 import org.futo.inputmethod.latin.uix.theme.ZipThemes
-import org.futo.inputmethod.latin.xlm.ModelPaths
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
@@ -244,16 +243,6 @@ object SettingsExporter {
             }
         }
 
-        // Collect transformer models
-        val modelDirectory = ModelPaths.getModelDirectory(context)
-        modelDirectory.listFiles()?.forEach { resourceFile ->
-            if (includeHeavyResources && ModelPaths.shouldFileBeIncludedInExport(resourceFile)) {
-                zipOut.putNextEntry(ZipEntry("transformers/${resourceFile.name}"))
-                resourceFile.inputStream().use { it.copyTo(zipOut) }
-                zipOut.closeEntry()
-            }
-        }
-
         // Collect UserHistoryDictionaries
         context.filesDir.listFiles()?.forEach { resourceFile ->
             if(resourceFile.name.startsWith("UserHistoryDictionary")
@@ -315,18 +304,12 @@ object SettingsExporter {
         var entry = zipIn.nextEntry
 
         val clipboardFile = context.clipboardFile
-        val transformersDir = ModelPaths.getModelDirectory(context)
         val extFilesDir = context.getExternalFilesDir(null)!!
         val themesDir = ZipThemes.customThemesDir(context)
         if (destructive) {
             // delete old clipboard
             if (clipboardFile.exists()) {
                 clipboardFile.delete()
-            }
-
-            // delete all transformers
-            transformersDir.listFiles()?.forEach {
-                it.delete()
             }
 
             // delete all ext resources
@@ -379,12 +362,6 @@ object SettingsExporter {
 
                 entry.name.startsWith("ext/") -> {
                     File(extFilesDir, entry.name.splitSlash()).outputStream().use {
-                        zipIn.copyTo(it)
-                    }
-                }
-
-                entry.name.startsWith("transformers/") -> {
-                    File(transformersDir, entry.name.splitSlash()).outputStream().use {
                         zipIn.copyTo(it)
                     }
                 }

@@ -11,72 +11,13 @@ set(LATIN_IME_JNI_SRC_FILES
         ${CMAKE_CURRENT_SOURCE_DIR}/org_futo_inputmethod_latin_BinaryDictionary.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/org_futo_inputmethod_latin_BinaryDictionaryUtils.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/org_futo_inputmethod_latin_DicTraverseSession.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/org_futo_inputmethod_latin_xlm_LanguageModel.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/org_futo_inputmethod_latin_xlm_AdapterTrainer.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/org_futo_inputmethod_latin_xlm_ModelInfoLoader.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/jni_common.cpp)
 
 set(LATIN_IME_CORE_INCLUDE
         ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/sentencepiece/builtin_pb
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/esaxx
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/darts_clone
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/absl)
+        ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 set(LATIN_IME_CORE_SRC_FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/ggml/context.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/ggml/ggml.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/ggml/ggml-alloc.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/ggml/ggml-quants.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/ggml/ggml-backend.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/ggml/llama.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/ggml/finetune.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/ggml/train.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/ggml/common.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/ggml/LanguageModel.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/ggml/ModelMeta.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/arena.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/arenastring.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/bytestream.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/coded_stream.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/common.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/extension_set.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/generated_enum_util.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/generated_message_table_driven_lite.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/generated_message_util.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/implicit_weak_message.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/int128.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/io_win32.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/message_lite.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/parse_context.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/repeated_field.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/status.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/statusor.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/stringpiece.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/stringprintf.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/structurally_valid.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/strutil.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/time.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/wire_format_lite.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/zero_copy_stream.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/zero_copy_stream_impl.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/protobuf-lite/zero_copy_stream_impl_lite.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/sentencepiece/builtin_pb/sentencepiece_model.pb.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/sentencepiece/builtin_pb/sentencepiece.pb.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/sentencepiece/bpe_model.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/sentencepiece/char_model.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/sentencepiece/error.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/sentencepiece/filesystem.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/sentencepiece/model_factory.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/sentencepiece/model_interface.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/sentencepiece/normalizer.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/sentencepiece/sentencepiece_processor.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/sentencepiece/unigram_model.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/sentencepiece/util.cc
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/sentencepiece/word_model.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/src/dictionary/header/header_policy.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/dictionary/header/header_read_write_utils.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/dictionary/property/ngram_context.cpp

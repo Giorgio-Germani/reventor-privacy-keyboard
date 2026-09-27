@@ -306,8 +306,7 @@ fun RowScope.SuggestionItem(words: SuggestedWords, idx: Int, isPrimary: Boolean,
     }
 
     val iconToUse = when {
-        wordInfo?.mOriginatesFromTransformerLM == true -> painterResource(id = R.drawable.transformer_suggestion)
-        wordInfo?.mOriginatesFromSwipeModel    == true -> painterResource(id = R.drawable.swipemodel_indicator)
+        wordInfo?.mOriginatesFromSwipeModel == true -> painterResource(id = R.drawable.swipemodel_indicator)
         else -> null
     }
     val textButtonModifier = if(iconToUse != null) {
@@ -453,9 +452,7 @@ fun makeSuggestionLayout(words: SuggestedWords, blacklist: SuggestionBlacklist?,
         }
     }
 
-    val areSuggestionsClueless = (autocorrectMatch ?: sortedMatches.getOrNull(0))?.let {
-        it.mOriginatesFromTransformerLM && it.mScore < -50
-    } ?: false
+    val areSuggestionsClueless = false
 
     val presentableSuggestions = (
             listOf(
@@ -1662,7 +1659,7 @@ fun PreviewActionBarWithQuickClip(colorScheme: ThemeOption = DefaultDarkScheme) 
             toggleActionsExpanded = { },
             quickClipState = QuickClipState(
                 texts = listOf(
-                    QuickClipItem(QuickClipKind.EmailAddress, "keyboard@futo.org", 0),
+                    QuickClipItem(QuickClipKind.EmailAddress, "example@example.com", 0),
                     QuickClipItem(QuickClipKind.NumericCode, "123456", 0),
                     QuickClipItem(QuickClipKind.FullString, "Hello world, this is a full string.", 0),
                 ),

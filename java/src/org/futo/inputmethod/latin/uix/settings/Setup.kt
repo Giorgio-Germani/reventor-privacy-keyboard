@@ -39,7 +39,7 @@ import org.futo.inputmethod.latin.R
 import org.futo.inputmethod.latin.uix.SettingsKey
 import org.futo.inputmethod.latin.uix.setSetting
 import org.futo.inputmethod.latin.uix.theme.Typography
-import org.futo.inputmethod.updates.openURI
+import org.futo.inputmethod.latin.uix.openURI
 
 @Composable
 fun SetupContainer(inner: @Composable () -> Unit) {
@@ -210,15 +210,6 @@ fun SetupDirectBootWarning() {
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Button(
-                onClick = {
-                    context.openURI("https://docs.keyboard.futo.tech/improvements/nightly#risk-of-using-nightly-with-password-screen-lock-type")
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                Text("Read more information")
-            }
 
             Button(
                 onClick = {

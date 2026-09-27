@@ -488,7 +488,6 @@ public final class Suggest {
                 wordInfo.mSourceDict, wordInfo.mIndexOfTouchPointOfSecondWord,
                 wordInfo.mAutoCommitFirstWordConfidence);
 
-        result.mOriginatesFromTransformerLM = wordInfo.mOriginatesFromTransformerLM;
         result.mOriginatesFromSwipeModel    = wordInfo.mOriginatesFromSwipeModel;
 
         return result;

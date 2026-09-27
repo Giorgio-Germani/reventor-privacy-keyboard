@@ -2871,8 +2871,7 @@ public final class InputLogic {
                         mWordComposer.isComposingWord() ? 2 : 1),
                 keyboard,
                 new SettingsValuesForSuggestion(
-                    settingsValues.mBlockPotentiallyOffensive,
-                    settingsValues.mTransformerPredictionEnabled
+                    settingsValues.mBlockPotentiallyOffensive
                 ),
                 settingsValues.mAutoCorrectionEnabledPerUserSettings,
                 inputStyle, sequenceNumber, callback);

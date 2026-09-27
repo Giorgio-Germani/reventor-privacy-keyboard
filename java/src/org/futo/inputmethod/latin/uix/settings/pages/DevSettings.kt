@@ -39,7 +39,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.futo.inputmethod.engine.general.UseExpandableSuggestionsForGeneralIME
 import org.futo.inputmethod.latin.BuildConfig
-import org.futo.inputmethod.latin.CrashLoggingApplication
 import org.futo.inputmethod.latin.R
 import org.futo.inputmethod.latin.SwipeDecoderDictionary
 import org.futo.inputmethod.latin.SwipeLanguageModelSetting
@@ -74,9 +73,6 @@ import org.futo.inputmethod.latin.uix.theme.TonalPalette
 import org.futo.inputmethod.latin.uix.theme.dynamicTonalPalette
 import org.futo.inputmethod.latin.uix.theme.serialization.AlphaOrder
 import org.futo.inputmethod.latin.uix.theme.serialization.argbLongToHexColorString
-import org.futo.inputmethod.latin.xlm.AllowTransformerOnNonQWERTYLayouts
-import org.futo.inputmethod.updates.DISABLE_UPDATE_REMINDER
-import org.futo.inputmethod.updates.dismissedMigrateUpdateNotice
 import kotlin.system.exitProcess
 
 
@@ -202,9 +198,7 @@ fun DeveloperScreen(navController: NavHostController = rememberNavController()) 
 
         SettingToggleDataStore(title = "Developer mode", setting = IS_DEVELOPER)
 
-        CrashLoggingApplication.CopyLogsOption()
 
-        SettingToggleDataStore(title = "Disable all update reminders", setting = DISABLE_UPDATE_REMINDER)
         
         SettingToggleDataStore(
             title = "Touch typing mode",
@@ -212,7 +206,6 @@ fun DeveloperScreen(navController: NavHostController = rememberNavController()) 
             setting = HiddenKeysSetting
         )
 
-        SettingToggleDataStore(title = "Dismissed migration notice", setting = dismissedMigrateUpdateNotice)
 
         SettingToggleDataStore(title = "Old action bar", setting = OldStyleActionsBar)
 
@@ -240,11 +233,6 @@ fun DeveloperScreen(navController: NavHostController = rememberNavController()) 
             title = "Dynamic palette",
             style = NavigationItemStyle.Misc,
             navigate = { navController.navigate("dynamicpalette") }
-        )
-
-        SettingToggleDataStore(
-            title = "Allow transformer models on non QWERTY layouts",
-            setting = AllowTransformerOnNonQWERTYLayouts
         )
 
 
@@ -300,49 +288,6 @@ fun DeveloperScreen(navController: NavHostController = rememberNavController()) 
             navigate = {
                 SwipeDecoderDictionary.debugLogUntil = System.currentTimeMillis() + 5L * 60L * 1000L
             }
-        )
-
-        ScreenTitle(title = "Payment stuff")
-
-        SettingToggleDataStore(title = "Is paid", setting = IS_ALREADY_PAID)
-        SettingToggleDataStore(title = "Is payment pending", setting = IS_PAYMENT_PENDING)
-        SettingToggleDataStore(title = "Has seen paid notice", setting = HAS_SEEN_PAID_NOTICE)
-        SettingToggleDataStore(title = "Force show notice", setting = FORCE_SHOW_NOTICE)
-
-        val reminder = useDataStore(NOTICE_REMINDER_TIME)
-        val currTime = System.currentTimeMillis() / 1000L
-
-        val subtitleValue = if (reminder.value > currTime) {
-            val diffDays = (reminder.value - currTime) / 60.0 / 60.0 / 24.0
-            "Reminding in ${"%.2f".format(diffDays)} days"
-        } else {
-            "Reminder unset"
-        }
-        SettingToggleRaw(
-            "Reminder Time",
-            reminder.value > currTime,
-            {
-                if (!it) {
-                    reminder.setValue(0L)
-                }
-            },
-            subtitleValue,
-            reminder.value <= currTime,
-            { }
-        )
-
-        val licenseKey = useDataStore(EXT_LICENSE_KEY)
-        SettingToggleRaw(
-            "Ext License Key",
-            licenseKey.value != EXT_LICENSE_KEY.default,
-            {
-                if(!it) {
-                    licenseKey.setValue(EXT_LICENSE_KEY.default)
-                }
-            },
-            licenseKey.value,
-            licenseKey.value == EXT_LICENSE_KEY.default,
-            { }
         )
 
         ScreenTitle(title = "Here be dragons")

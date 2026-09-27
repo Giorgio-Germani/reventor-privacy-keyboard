@@ -34,6 +34,7 @@ import org.futo.inputmethod.latin.R
 import org.futo.inputmethod.latin.uix.settings.BottomSpacer
 import org.futo.inputmethod.latin.uix.settings.NavigationItem
 import org.futo.inputmethod.latin.uix.settings.NavigationItemStyle
+import org.futo.inputmethod.latin.uix.settings.ParagraphText
 import org.futo.inputmethod.latin.uix.settings.Route
 import org.futo.inputmethod.latin.uix.settings.ScreenTitle
 import org.futo.inputmethod.latin.uix.settings.ScrollableList
@@ -46,9 +47,10 @@ import org.futo.inputmethod.latin.uix.settings.pages.credits.languageContribs
 import org.futo.inputmethod.latin.uix.settings.pages.credits.layoutContribs
 import org.futo.inputmethod.latin.uix.settings.pages.credits.text
 import org.futo.inputmethod.latin.uix.settings.render
+import org.futo.inputmethod.latin.uix.settings.userSettingDecorationOnly
 import org.futo.inputmethod.latin.uix.settings.userSettingNavigationItem
 import org.futo.inputmethod.latin.uix.theme.Typography
-import org.futo.inputmethod.updates.openURI
+import org.futo.inputmethod.latin.uix.openURI
 
 @Composable
 @Preview(showBackground = true)
@@ -206,25 +208,15 @@ val CreditsScreenLite = UserSettingsMenu(
     title = R.string.credits_menu_title,
     navPath = "credits", registerNavPath = false,
     settings = listOf(
-        userSettingNavigationItem(
-            title = (R.string.credits_menu_contribute_translations_button),
-            style = NavigationItemStyle.Misc,
-            navigate = {
-                it.context.openURI("https://i18n-keyboard.futo.org/")
-            }),
-        userSettingNavigationItem(
-            title = (R.string.credits_menu_contribute_keyboard_layouts_button),
-            style = NavigationItemStyle.Misc,
-            navigate = {
-                it.context.openURI("https://github.com/futo-org/futo-keyboard-layouts")
-            }),
-        userSettingNavigationItem(
-            title = (R.string.credits_menu_contribute_code_button),
-            style = NavigationItemStyle.Misc,
-            navigate = {
-                it.context.openURI("https://github.com/futo-org/android-keyboard/")
-            })
-
+        userSettingDecorationOnly {
+            val context = LocalContext.current
+            NavigationItem(
+                title = "REVENTOR Privacy Keyboard on GitHub",
+                style = NavigationItemStyle.Misc,
+                navigate = {
+                    context.openURI("https://github.com/Giorgio-Germani/reventor-privacy-keyboard")
+                })
+        }
     )
 )
 
@@ -252,10 +244,10 @@ fun CreditsScreen(navController: NavHostController = rememberNavController()) {
             )
             NavigationItem(
                 title = stringResource(R.string.credits_reventor_upstream),
-                subtitle = "https://futo.tech",
+                subtitle = "https://github.com/futo-org/android-keyboard",
                 style = NavigationItemStyle.ExternalLink,
                 navigate = {
-                    context.openURI("https://futo.tech/")
+                    context.openURI("https://github.com/futo-org/android-keyboard/")
                 }
             )
 

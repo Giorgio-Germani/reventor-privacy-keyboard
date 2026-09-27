@@ -43,7 +43,7 @@ import org.futo.inputmethod.latin.uix.settings.NavigationItemStyle
 import org.futo.inputmethod.latin.uix.settings.Route
 import org.futo.inputmethod.latin.uix.settings.ScreenTitle
 import org.futo.inputmethod.latin.uix.settings.ScrollableList
-import org.futo.inputmethod.updates.openURI
+import org.futo.inputmethod.latin.uix.openURI
 import org.futo.inputmethod.v2keyboard.Keyboard
 import org.futo.inputmethod.v2keyboard.parseKeyboardYamlString
 import java.util.Locale

@@ -83,7 +83,6 @@ public class SettingsValues {
     public final boolean mBlockSlurs;
     // Use bigrams to predict the next word when there is no input for it yet
     public final boolean mBigramPredictionEnabled;
-    public final boolean mTransformerPredictionEnabled;
     public final boolean mGestureInputEnabled;
     public final boolean mGestureInputSensitive;
     public final boolean mGestureTrailEnabled;
@@ -194,8 +193,7 @@ public class SettingsValues {
         final String autoCorrectionThresholdRawValue = mAutoCorrectEnabled
                 ? res.getString(R.string.auto_correction_threshold_mode_index_modest)
                 : res.getString(R.string.auto_correction_threshold_mode_index_off);
-        mTransformerPredictionEnabled = readTransformerPredictionEnabled(prefs, res);
-        mBigramPredictionEnabled = readBigramPredictionEnabled(prefs, res) || mTransformerPredictionEnabled;
+        mBigramPredictionEnabled = readBigramPredictionEnabled(prefs, res);
         mDoubleSpacePeriodTimeout = res.getInteger(R.integer.config_double_space_period_timeout);
         mHasHardwareKeyboard = Settings.readHasHardwareKeyboard(res.getConfiguration());
         mEnableMetricsLogging = prefs.getBoolean(Settings.PREF_ENABLE_METRICS_LOGGING, true);
@@ -400,11 +398,6 @@ public class SettingsValues {
                 R.bool.config_default_next_word_prediction));
     }
 
-    private static boolean readTransformerPredictionEnabled(final SharedPreferences prefs,
-            final Resources res) {
-        return prefs.getBoolean(Settings.PREF_KEY_USE_TRANSFORMER_LM, true);
-    }
-
     private static float readAutoCorrectionThreshold(final Resources res,
             final String currentAutoCorrectionSetting) {
         final String[] autoCorrectionThresholdValues = res.getStringArray(
@@ -492,8 +485,6 @@ public class SettingsValues {
         sb.append("" + mBlockPotentiallyOffensive);
         sb.append("\n   mBigramPredictionEnabled = ");
         sb.append("" + mBigramPredictionEnabled);
-        sb.append("\n   mTransformerPredictionEnabled = ");
-        sb.append("" + mTransformerPredictionEnabled);
         sb.append("\n   mGestureInputEnabled = ");
         sb.append("" + mGestureInputEnabled);
         sb.append("\n   mGestureTrailEnabled = ");

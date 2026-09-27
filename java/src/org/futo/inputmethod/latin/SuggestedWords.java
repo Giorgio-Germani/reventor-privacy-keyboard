@@ -266,7 +266,6 @@ public class SuggestedWords {
                     info.mIndexOfTouchPointOfSecondWord,
                     info.mAutoCommitFirstWordConfidence
             );
-            copy.mOriginatesFromTransformerLM = info.mOriginatesFromTransformerLM;
             copy.mOriginatesFromSwipeModel = info.mOriginatesFromSwipeModel;
             newList.add(copy);
         }
@@ -325,7 +324,6 @@ public class SuggestedWords {
 
         private String mDebugString = "";
 
-        public boolean mOriginatesFromTransformerLM = false;
         public boolean mOriginatesFromSwipeModel = false;
 
         /**

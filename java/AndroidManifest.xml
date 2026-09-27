@@ -165,24 +165,6 @@
         </service>
         -->
         <activity
-            android:name=".payment.PaymentCompleteActivity"
-            android:exported="true"
-            android:label="@string/payment_screen_payment_complete_title"
-            android:clearTaskOnLaunch="false"
-            android:launchMode="singleInstance"
-            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data android:scheme="futo-voice-input" />
-                <data android:scheme="futo-keyboard" />
-            </intent-filter>
-        </activity>
-
-        <activity
             android:name=".MicPermissionActivity"
             android:clearTaskOnLaunch="false"
             android:launchMode="standard"

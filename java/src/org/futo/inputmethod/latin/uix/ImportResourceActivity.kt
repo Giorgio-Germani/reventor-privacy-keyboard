@@ -71,8 +71,7 @@ import org.futo.inputmethod.latin.uix.theme.orDefault
 import org.futo.inputmethod.latin.utils.Dictionaries
 import org.futo.inputmethod.latin.utils.SubtypeLocaleUtils
 import org.futo.inputmethod.latin.utils.ZipFileHelper
-import org.futo.inputmethod.latin.xlm.ModelPaths
-import org.futo.inputmethod.updates.openURI
+import org.futo.inputmethod.latin.uix.openURI
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStream
@@ -240,13 +239,11 @@ fun ImportScreen(fileKind: FileKindAndInfo, onApply: (FileKindAndInfo, InputMeth
 }
 
 enum class FileKind {
-    Transformer,
     Dictionary,
     Invalid;
 
     fun getAddonUrlForLocale(locale: Locale?): String {
         return when(this) {
-            Transformer -> "https://keyboard.futo.tech/models?locale=${locale?.toLanguageTag() ?: ""}"
             Dictionary -> "https://keyboard.futo.tech/dictionaries?locale=${locale?.toLanguageTag() ?: ""}"
             Invalid -> "https://keyboard.futo.tech/"
         }
@@ -255,7 +252,6 @@ enum class FileKind {
 
 fun FileKind.kindTitle(resources: Resources): String {
     return resources.getString(when(this) {
-        FileKind.Transformer -> R.string.file_kind_transformer_model
         FileKind.Dictionary -> R.string.file_kind_dictionary
         FileKind.Invalid -> R.string.file_kind_invalid_file
     })
@@ -263,7 +259,6 @@ fun FileKind.kindTitle(resources: Resources): String {
 
 fun FileKind.icon(): Int {
     return when(this) {
-        FileKind.Transformer -> R.drawable.cpu
         FileKind.Dictionary -> R.drawable.book
         FileKind.Invalid -> R.drawable.close
     }
@@ -271,7 +266,6 @@ fun FileKind.icon(): Int {
 
 fun FileKind.extension(): String {
     return when(this) {
-        FileKind.Transformer -> ".gguf"
         FileKind.Dictionary -> ".dict"
         FileKind.Invalid -> ""
     }
@@ -491,14 +485,12 @@ fun determineFileKind(inputStream: InputStream): FileKindAndInfo {
     val array = ByteArray(4)
     inputStream.read(array)
 
-    val transformerMagic = 0x47475546.toUInt()
     val dictionaryMagic = 0x9bc13afe.toUInt()
     val mozcMagic = 0xef4d4f5a.toUInt()
 
     val magic = ByteBuffer.wrap(array).getInt().toUInt()
 
     return when {
-        magic == transformerMagic -> FileKindAndInfo(FileKind.Transformer, null, null)
         magic == mozcMagic -> {
             FileKindAndInfo(
                 FileKind.Dictionary,
@@ -695,49 +687,28 @@ class ImportResourceActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
-                // This is a special case for now
-                if (fileKind.kind == FileKind.Transformer) {
-                    // 1. Copy file
-                    val contentResolver = applicationContext.contentResolver
-                    val outDirectory = ModelPaths.getModelDirectory(applicationContext)
-                    val outputFile = File(outDirectory, outputFileName)
-                    if (outputFile.exists()) {
-                        outputFile.delete()
+                // 1. Copy file
+                val contentResolver = applicationContext.contentResolver
+                contentResolver.openInputStream(uri!!)!!.use { inputStream ->
+                    val outputFile =
+                        File(applicationContext.getExternalFilesDir(null), outputFileName)
+                    if(outputFile.exists()) { outputFile.delete() }
+
+                    outputFile.outputStream().use { outputStream ->
+                        inputStream.copyTo(outputStream, 1024)
                     }
+                }
 
-                    contentResolver.openInputStream(uri!!)!!.use { inputStream ->
-                        outputFile.outputStream().use { outputStream ->
-                            inputStream.copyTo(outputStream, 1024)
-                        }
-                    }
-
-                    // 2. Update reference
-                    val language = locale.split("_").first()
-                    ModelPaths.updateModelOption(applicationContext, language, outputFile)
-                } else {
-                    // 1. Copy file
-                    val contentResolver = applicationContext.contentResolver
-                    contentResolver.openInputStream(uri!!)!!.use { inputStream ->
-                        val outputFile =
-                            File(applicationContext.getExternalFilesDir(null), outputFileName)
-                        if(outputFile.exists()) { outputFile.delete() }
-
-                        outputFile.outputStream().use { outputStream ->
-                            inputStream.copyTo(outputStream, 1024)
-                        }
-                    }
-
-                    // 2. Update reference
+                // 2. Update reference
+                applicationContext.setSetting(
+                    fileKind.kind.preferenceKeyFor(locale),
+                    outputFileName
+                )
+                fileKind.name?.let {
                     applicationContext.setSetting(
-                        fileKind.kind.preferenceKeyFor(locale),
-                        outputFileName
+                        fileKind.kind.namePreferenceKeyFor(locale),
+                        it
                     )
-                    fileKind.name?.let {
-                        applicationContext.setSetting(
-                            fileKind.kind.namePreferenceKeyFor(locale),
-                            it
-                        )
-                    }
                 }
             }
             GlobalIMEMessage.tryEmit(IMEMessage.ReloadResources)

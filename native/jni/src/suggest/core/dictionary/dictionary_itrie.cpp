@@ -2,7 +2,7 @@
 #include "dictionary/property/ngram_context.h"
 #include "suggest/core/dicnode/dic_node_vector.h"
 #include "dictionary/interface/dictionary_structure_with_buffer_policy.h"
-#include "ggml/unicode.h"
+#include "utils/unicode.h"
 
 namespace latinime {
 

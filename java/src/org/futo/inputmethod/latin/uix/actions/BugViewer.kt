@@ -18,7 +18,7 @@ import org.futo.inputmethod.latin.R
 import org.futo.inputmethod.latin.uix.Action
 import org.futo.inputmethod.latin.uix.ActionWindow
 import org.futo.inputmethod.latin.uix.settings.ScrollableList
-import org.futo.inputmethod.updates.openURI
+import org.futo.inputmethod.latin.uix.openURI
 
 
 data class BugInfo(val name: String, val details: String)
@@ -123,9 +123,12 @@ val BugViewerAction = Action(
                             }
 
                             TextButton(onClick = {
-                                manager.getContext().openURI("mailto:keyboard@futo.org", newTask = true)
+                                manager.getContext().openURI(
+                                    "https://github.com/Giorgio-Germani/reventor-privacy-keyboard/issues",
+                                    newTask = true
+                                )
                             }) {
-                                Text("Email us (include the copy)")
+                                Text("Open a GitHub issue (include the copy)")
                             }
                         }
                         Text(it.details, style = DebugLabel)

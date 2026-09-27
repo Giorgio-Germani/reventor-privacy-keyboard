@@ -1,7 +1,6 @@
 package org.futo.inputmethod.latin.uix.actions
 
 import android.content.Intent
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -47,7 +46,7 @@ import org.futo.inputmethod.latin.uix.getSetting
 import org.futo.inputmethod.latin.uix.setSetting
 import org.futo.inputmethod.latin.uix.settings.SettingsActivity
 import org.futo.inputmethod.latin.uix.utils.ModelOutputSanitizer
-import org.futo.inputmethod.updates.openURI
+import org.futo.inputmethod.latin.uix.openURI
 import org.futo.voiceinput.shared.RecognizerView
 import org.futo.voiceinput.shared.RecognizerViewListener
 import org.futo.voiceinput.shared.RecognizerViewSettings
@@ -287,21 +286,10 @@ val VoiceInputAction = Action(icon = R.drawable.mic_fill,
     simplePressImpl = null,
     keepScreenAwake = true,
     persistentState = { VoiceInputPersistentState(it) },
-    // Long-press cycles the spoken language without starting a recording;
-    // the spacebar always shows the current choice.
-    altPressImpl = { manager, _ ->
-        val next = VoiceLanguageState.cycle(manager.getContext())
-        Toast.makeText(
-            manager.getContext(),
-            manager.getContext().getString(
-                R.string.voice_input_language_toast, VoiceLanguageState.displayName(next)
-            ),
-            Toast.LENGTH_SHORT
-        ).show()
-    },
     windowImpl = { manager, persistentState ->
         // REVENTOR: voice input runs entirely on the bundled Canary engine;
-        // the spoken language is chosen by the user in the voice window.
+        // the spoken language is shown on the spacebar and switched via the
+        // spacebar language selector.
         VoiceInputActionWindow(
             manager = manager, state = persistentState as VoiceInputPersistentState
         )

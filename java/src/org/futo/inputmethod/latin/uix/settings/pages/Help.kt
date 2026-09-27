@@ -22,7 +22,7 @@ import org.futo.inputmethod.latin.uix.settings.UserSetting
 import org.futo.inputmethod.latin.uix.settings.UserSettingsMenu
 import org.futo.inputmethod.latin.uix.settings.userSettingDecorationOnly
 import org.futo.inputmethod.latin.uix.settings.userSettingNavigationItem
-import org.futo.inputmethod.updates.openURI
+import org.futo.inputmethod.latin.uix.openURI
 
 internal fun Context.copyToClipboard(text: CharSequence, label: String = "Copied Text") {
     val clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -88,54 +88,27 @@ val HelpMenu = UserSettingsMenu(
                 ))
         },
 
-        userSettingNavigationItem(
-            title = R.string.help_menu_website,
-            subtitle = R.string.help_menu_website_subtitle,
-            style = NavigationItemStyle.Misc,
-            navigate = { nav ->
-                nav.context.openURI("https://futo.tech/")
-            }
-        ).copy(searchTags = R.string.help_menu_website_tags),
-
-        userSettingNavigationItem(
-            title = R.string.help_menu_documentation,
-            subtitle = R.string.help_menu_documentation_subtitle,
-            style = NavigationItemStyle.Misc,
-            navigate = { nav ->
-                nav.context.openURI("https://docs.keyboard.futo.tech/")
-            }
-        ),
-        userSettingNavigationItem(
-            title = R.string.help_menu_discord,
-            subtitle = R.string.help_menu_discord_subtitle,
-            style = NavigationItemStyle.Misc,
-            navigate = { nav ->
-                nav.context.openURI("https://keyboard.futo.tech/discord")
-            }
-        ),
-        userSettingNavigationItem(
-            title = R.string.help_menu_futo_chat,
-            subtitle = R.string.help_menu_futo_chat_subtitle,
-            style = NavigationItemStyle.Misc,
-            navigate = { nav ->
-                nav.context.openURI("https://chat.futo.org/")
-            }
-        ),
-        userSettingNavigationItem(
-            title = R.string.help_menu_github,
-            subtitle = R.string.help_menu_github_subtitle,
-            style = NavigationItemStyle.Misc,
-            navigate = { nav ->
-                nav.context.openURI("https://github.com/futo-org/android-keyboard/issues")
-            }
-        ),
-        userSettingNavigationItem(
-            title = R.string.help_menu_email,
-            subtitle = R.string.help_menu_email_subtitle,
-            style = NavigationItemStyle.Mail,
-            navigate = { nav ->
-                nav.context.openURI("mailto:keyboard@futo.org")
-            }
-        ).copy(searchTags = R.string.help_menu_email_tags),
+        userSettingDecorationOnly {
+            val context = LocalContext.current
+            NavigationItem(
+                title = "REVENTOR Privacy Keyboard on GitHub",
+                subtitle = "Project home",
+                style = NavigationItemStyle.Misc,
+                navigate = {
+                    context.openURI("https://github.com/Giorgio-Germani/reventor-privacy-keyboard")
+                }
+            )
+        },
+        userSettingDecorationOnly {
+            val context = LocalContext.current
+            NavigationItem(
+                title = "Report an issue",
+                subtitle = "Open a GitHub issue",
+                style = NavigationItemStyle.Misc,
+                navigate = {
+                    context.openURI("https://github.com/Giorgio-Germani/reventor-privacy-keyboard/issues")
+                }
+            )
+        },
     )
 )

@@ -138,11 +138,6 @@ import org.futo.inputmethod.latin.uix.theme.KeyboardSurfaceShaderBackground
 import org.futo.inputmethod.latin.uix.theme.Typography
 import org.futo.inputmethod.latin.uix.theme.UixThemeAuto
 import org.futo.inputmethod.latin.uix.theme.UixThemeWrapper
-import org.futo.inputmethod.updates.autoDeferManualUpdateIfNeeded
-import org.futo.inputmethod.updates.deferManualUpdate
-import org.futo.inputmethod.updates.isManualUpdateTimeExpired
-import org.futo.inputmethod.updates.openManualUpdateCheck
-import org.futo.inputmethod.updates.retrieveSavedLastUpdateCheckResult
 import org.futo.inputmethod.v2keyboard.ComputedKeyboardSize
 import org.futo.inputmethod.v2keyboard.getPrimaryLayoutOverride
 import org.futo.inputmethod.v2keyboard.FloatingKeyboardSize
@@ -1371,70 +1366,6 @@ class UixManager(private val latinIME: LatinIME) {
     fun setContent() {
         composeView?.setContent {
             Content()
-        }
-    }
-
-    suspend fun showUpdateNoticeIfNeeded() {
-        if(!BuildConfig.UPDATE_CHECKING) return
-
-        autoDeferManualUpdateIfNeeded(latinIME)
-
-        val updateInfo = retrieveSavedLastUpdateCheckResult(latinIME)
-        if(updateInfo != null && updateInfo.isNewer()) {
-            /*if(!latinIME.getSetting(DISABLE_UPDATE_REMINDER)) {
-                numSuggestionsSinceNotice = 0
-                currentNotice.value = object : ImportantNotice {
-                    @Composable
-                    override fun getText(): String {
-                        return "Update available: ${updateInfo.nextVersionString}"
-                    }
-
-                    override fun onDismiss(context: Context) {
-                        currentNotice.value = null
-                    }
-
-                    override fun onOpen(context: Context) {
-                        currentNotice.value = null
-
-                        val intent = Intent(context, SettingsActivity::class.java)
-                        intent.putExtra("navDest", "update")
-
-                        if (context !is Activity) {
-                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        }
-
-                        context.startActivity(intent)
-                    }
-                }
-            }*/
-        } else {
-            if(isManualUpdateTimeExpired(latinIME)) {
-                numSuggestionsSinceNotice = 0
-                currentNotice.value = object : ImportantNotice {
-                    @Composable
-                    override fun getText(): String {
-                        return stringResource(R.string.keyboard_actionbar_manual_update_check_notice)
-                    }
-
-                    override fun onDismiss(context: Context, auto: Boolean) {
-                        currentNotice.value = null
-
-                        runBlocking {
-                            deferManualUpdate(latinIME)
-                        }
-                    }
-
-                    override fun onOpen(context: Context) {
-                        currentNotice.value = null
-                        context.openManualUpdateCheck()
-
-                        runBlocking {
-                            deferManualUpdate(latinIME)
-                        }
-                    }
-                }
-
-            }
         }
     }
 
