@@ -59,6 +59,13 @@ class SystemSpeechRecognizer(
     private var language: Language = settings.language
     private var running = false
 
+    /**
+     * Google's service can deliver several errors for one failed session
+     * (e.g. "pack missing" followed ~5 s later by a generic CLIENT error).
+     * Only the first error of a session is reported — it's the root cause.
+     */
+    private var reportedFatalError = false
+
     /** Changes the language the next dictation is transcribed as. */
     fun setLanguage(language: Language) {
         this.language = language
@@ -118,23 +125,68 @@ class SystemSpeechRecognizer(
 
     private fun startListening() {
         destroyRecognizer()
+        reportedFatalError = false
         listener.loading()
 
         val sr = SpeechRecognizer.createOnDeviceSpeechRecognizer(context)
         recognizer = sr
         sr.setRecognitionListener(recognitionListener)
 
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, language.toLanguageTag())
-            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-            putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
-            // Belt and braces: the on-device factory already guarantees this.
-            putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+        val intent = recognitionIntent(language.toLanguageTag())
+
+        // Ask the bound service what it can actually do for this language.
+        // This is the authoritative view (the Google app's pack list can
+        // disagree with the service that ends up doing the work).
+        if (Build.VERSION.SDK_INT >= 33) {
+            try {
+                sr.checkRecognitionSupport(intent, { it.run() },
+                    object : android.speech.RecognitionSupportCallback {
+                        override fun onSupportResult(support: android.speech.RecognitionSupport) {
+                            println(
+                                "SystemSpeech: support for ${intent.getStringExtra(RecognizerIntent.EXTRA_LANGUAGE)}: " +
+                                    "installed=${support.installedOnDeviceLanguages} " +
+                                    "pending=${support.pendingOnDeviceLanguages} " +
+                                    "online=${support.onlineLanguages}"
+                            )
+                            // If our first choice isn't installed but another
+                            // variant of the same language is, use that.
+                            if (Build.VERSION.SDK_INT >= 33 &&
+                                intent.getStringExtra(RecognizerIntent.EXTRA_LANGUAGE)
+                                    ?.let { it !in support.installedOnDeviceLanguages } == true
+                            ) {
+                                val wanted = language.toLanguageTag().substringBefore('-')
+                                val alternate = support.installedOnDeviceLanguages.firstOrNull {
+                                    it.substringBefore('-') == wanted
+                                }
+                                if (alternate != null) {
+                                    println("SystemSpeech: falling back to installed variant $alternate")
+                                    intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, alternate)
+                                }
+                            }
+                        }
+
+                        override fun onError(error: Int) {
+                            println("SystemSpeech: support check failed code=$error")
+                        }
+                    }
+                )
+            } catch (e: Exception) {
+                println("SystemSpeech: support check threw ${e.message}")
+            }
         }
+
         running = true
         println("SystemSpeech: startListening ${language.toLanguageTag()}")
         sr.startListening(intent)
+    }
+
+    private fun recognitionIntent(tag: String): Intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+        putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+        putExtra(RecognizerIntent.EXTRA_LANGUAGE, tag)
+        putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+        putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+        // Belt and braces: the on-device factory already guarantees this.
+        putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
     }
 
     private fun destroyRecognizer() {
@@ -179,6 +231,10 @@ class SystemSpeechRecognizer(
         override fun onError(error: Int) {
             running = false
             println("SystemSpeech: onError code=$error")
+            // The session is dead either way; free it so the next start is clean.
+            destroyRecognizer()
+            if (reportedFatalError) return
+            reportedFatalError = true
             when (error) {
                 SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS ->
                     listener.needPermission { granted -> if (granted) start() }
@@ -202,6 +258,7 @@ class SystemSpeechRecognizer(
                 listener.finished(text)
             }
             destroyRecognizer()
+            reportedFatalError = false
         }
 
         override fun onPartialResults(partialResults: Bundle?) {

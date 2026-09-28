@@ -132,7 +132,8 @@ class RecognizerView(
                             enabled = true,
                             onClickLabel = null,
                             onClick = {
-                                listener.openSettings()
+                                // Tap anywhere to retry the session.
+                                recognizer.start()
                             },
                             role = null,
                             indication = null,
