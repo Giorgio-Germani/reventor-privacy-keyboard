@@ -18,6 +18,26 @@ auto-detected:
 - The language can also be tapped directly in the voice input window (chips
   at the top). The microphone button never changes the language.
 
+## Clipboard sync (added by this fork)
+
+`Clipboard Sync` copies text between this keyboard and paired Windows/macOS/
+Linux desktops running the `:desktop` tray app (`desktop/` module), plus the
+shared `:sync-protocol` module. Design decisions worth remembering:
+
+- **Offline-first stance change**: this feature re-adds the `INTERNET` and
+  `ACCESS_NETWORK_STATE` permissions (the latter was explicitly stripped via
+  `tools:node="remove"` before). Traffic is direct LAN peer-to-peer, E2E
+  encrypted (ECDH P-256 + AES-256-GCM, SAS-verified pairing); nothing is sent
+  to any server. Text clips only, sensitive clips skipped, 500k char cap.
+- The engine runs in the IME process (`uix/clipboardsync/`), which is what
+  makes background clipboard access work on Android 10+. The phone is
+  connect-only; desktops listen on TCP 42240 and advertise via mDNS
+  (`_reventorsync._tcp`).
+- Clips captured while a peer was unreachable are reconciled on the next
+  connection (each side announces its current clip when a link goes live).
+  PC→phone delivery therefore happens when the keyboard next appears; an
+  optional same-process foreground service could make it instant (future work).
+
 ## Removed from upstream FUTO Keyboard
 
 | Feature | Reason |

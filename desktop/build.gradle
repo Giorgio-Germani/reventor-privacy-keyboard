@@ -1,0 +1,37 @@
+plugins {
+    // No version: the Kotlin Gradle plugin is already on the classpath via the
+    // root project (2.1.0). Compose Multiplatform 1.7.x pairs with Kotlin 2.1.
+    id 'org.jetbrains.kotlin.multiplatform'
+    id 'org.jetbrains.kotlin.plugin.compose'
+    id 'org.jetbrains.kotlin.plugin.serialization'
+    id 'org.jetbrains.compose' version '1.7.3'
+}
+
+kotlin {
+    jvm("desktop")
+
+    sourceSets {
+        desktopMain.dependencies {
+            implementation project(':sync-protocol')
+            implementation compose.desktop.currentOs
+            implementation compose.ui
+            implementation compose.foundation
+            implementation compose.material3
+            implementation 'org.jmdns:jmdns:3.5.9'
+        }
+    }
+}
+
+compose.desktop {
+    application {
+        mainClass = "org.reventor.sync.desktop.MainKt"
+
+        nativeDistributions {
+            targetFormats(org.jetbrains.compose.desktop.application.dsl.TargetFormat.Msi,
+                          org.jetbrains.compose.desktop.application.dsl.TargetFormat.Deb,
+                          org.jetbrains.compose.desktop.application.dsl.TargetFormat.Dmg)
+            packageName = "ReventorSync"
+            packageVersion = "1.0.0"
+        }
+    }
+}

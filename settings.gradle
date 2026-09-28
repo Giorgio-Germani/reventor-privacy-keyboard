@@ -17,3 +17,5 @@ dependencyResolutionManagement {
     }
 }
 include ':voiceinput-shared'
+include ':sync-protocol'
+include ':desktop'

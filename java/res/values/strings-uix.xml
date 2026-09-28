@@ -719,4 +719,25 @@ Default is %1$s</string>
     <string name="personal_dictionary_delete_additional_file">Delete extra dictionary file?</string>
     <!-- %1$s will be replaced with the custom dictionary name -->
     <string name="personal_dictionary_delete_additional_file_text">%1$s will be deleted</string>
+
+    <!-- Clipboard sync settings menu -->
+    <string name="clipboard_sync_settings_title">Clipboard Sync</string>
+    <string name="clipboard_sync_enable">Sync clipboard with paired devices</string>
+    <string name="clipboard_sync_enable_subtitle">Copy on this keyboard, paste on your computer, and the other way around. Works on your local network; contents stay end-to-end encrypted between your devices.</string>
+    <string name="clipboard_sync_device_name">This device\'s name</string>
+    <string name="clipboard_sync_paired_devices">Paired devices</string>
+    <string name="clipboard_sync_no_paired_devices">No paired devices yet. Run Reventor Sync on your computer and make sure both are on the same network.</string>
+    <string name="clipboard_sync_unpair">Unpair</string>
+    <string name="clipboard_sync_status_connected">connected</string>
+    <string name="clipboard_sync_status_offline">offline</string>
+    <string name="clipboard_sync_pair_new">Pair a new device</string>
+    <string name="clipboard_sync_discovering">Searching for devices on this network…</string>
+    <string name="clipboard_sync_discovery_none">No devices found yet. Is the desktop app running and this device on the same Wi-Fi? You can also retry by toggling this section.</string>
+    <string name="clipboard_sync_confirm_pairing">Pair with %1$s?</string>
+    <string name="clipboard_sync_confirm_pairing_code">Verify that both screens show this code:</string>
+    <string name="clipboard_sync_confirm_button">They match</string>
+    <string name="clipboard_sync_cancel_button">Cancel</string>
+    <string name="clipboard_sync_manual_hint">If nothing shows up, check that the desktop app is running, then reopen this page to search again.</string>
+    <string name="clipboard_sync_manual_label">Address shown in the desktop app, e.g. 10.0.0.4:42240</string>
+    <string name="clipboard_sync_manual_connect">Connect</string>
 </resources>

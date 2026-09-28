@@ -1,0 +1,28 @@
+plugins {
+    // No versions: the Kotlin Gradle plugin is already on the classpath via the
+    // root project's kotlin.android plugin (2.1.0).
+    id 'org.jetbrains.kotlin.jvm'
+    id 'org.jetbrains.kotlin.plugin.serialization'
+}
+
+// Must stay JVM-only: this module is consumed by both the Android app and the
+// desktop app. No android.* imports, no Android Gradle plugin here.
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
+    }
+}
+
+dependencies {
+    api 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0'
+    api 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1'
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0'
+}

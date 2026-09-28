@@ -129,6 +129,7 @@ import org.futo.inputmethod.latin.uix.actions.KeyboardModeAction
 import org.futo.inputmethod.latin.uix.actions.PersistentEmojiState
 import org.futo.inputmethod.latin.uix.actions.keyCode
 import org.futo.inputmethod.latin.uix.actions.keyCodeAlt
+import org.futo.inputmethod.latin.uix.clipboardsync.ClipboardSync
 import org.futo.inputmethod.latin.uix.resizing.KeyboardResizers
 import org.futo.inputmethod.latin.uix.settings.DataStoreCacheProvider
 import org.futo.inputmethod.latin.uix.settings.pages.ActionBarDisplayedSetting
@@ -1563,6 +1564,9 @@ class UixManager(private val latinIME: LatinIME) {
 
         quickClipState.value = QuickClip.getCurrentState(latinIME)
         floatingPreeditEditing.value = false
+
+        // Clipboard sync: refresh connections to paired desktops opportunistically.
+        ClipboardSync.onInputStarted()
     }
 
     fun onInputFinishing() {

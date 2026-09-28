@@ -96,6 +96,13 @@ val HomeScreenLite = UserSettingsMenu(
         },
 
         userSettingNavigationItem(
+            title = R.string.clipboard_sync_settings_title,
+            style = NavigationItemStyle.HomePrimary,
+            navigateTo = ClipboardSyncMenu.navPath,
+            icon = R.drawable.clipboard_manager
+        ),
+
+        userSettingNavigationItem(
             title = R.string.action_settings_title,
             style = NavigationItemStyle.HomeSecondary,
             navigateTo = "actions",

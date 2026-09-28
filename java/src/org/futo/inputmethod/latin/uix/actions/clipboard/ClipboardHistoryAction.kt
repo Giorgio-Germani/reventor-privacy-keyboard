@@ -105,8 +105,11 @@ import org.futo.inputmethod.latin.uix.actions.BugViewerState
 import org.futo.inputmethod.latin.uix.actions.PasteAction
 import org.futo.inputmethod.latin.uix.actions.fonttyper.SuperheroRenderer
 import org.futo.inputmethod.latin.uix.actions.throwIfDebug
+import org.futo.inputmethod.latin.uix.clipboardsync.CLIPBOARD_SYNC_ENABLED
+import org.futo.inputmethod.latin.uix.clipboardsync.ClipboardSync
 import org.futo.inputmethod.latin.uix.getSetting
 import org.futo.inputmethod.latin.uix.getSettingBlocking
+import org.futo.inputmethod.latin.uix.getSettingFlow
 import org.futo.inputmethod.latin.uix.getUnlockedSetting
 import org.futo.inputmethod.latin.uix.isDirectBootUnlocked
 import org.futo.inputmethod.latin.uix.setSetting
@@ -505,8 +508,12 @@ class ClipboardHistoryManager(val context: Context, val coroutineScope: Lifecycl
         }
     })
 
+    // Clipboard sync with paired desktop peers; active only while enabled.
+    private val clipboardSync = ClipboardSync.obtain(context)
+
     override suspend fun onDeviceUnlocked() {
         loadClipboard()
+        if (context.getSettingBlocking(CLIPBOARD_SYNC_ENABLED)) clipboardSync.start()
     }
 
     internal fun onImageAdded(mimeTypes: List<String>, uri: Uri, timestamp: Long = System.currentTimeMillis(), keepUri: Boolean = false) {
@@ -658,6 +665,10 @@ class ClipboardHistoryManager(val context: Context, val coroutineScope: Lifecycl
             onClipboardImportedFlow.collectLatest {
                 coroutineScope.ensureActive()
                 onClipboardImported(it)
+            }
+
+            context.getSettingFlow(CLIPBOARD_SYNC_ENABLED).collectLatest { enabled ->
+                if (enabled) clipboardSync.start() else clipboardSync.stop()
             }
         }
     }
@@ -988,6 +999,7 @@ ${if(clipboardFileSwap.exists()) { clipboardFileSwap.readText() } else { "File d
     override fun close() {
         clipboardManager.removePrimaryClipChangedListener(primaryClipChangedListener)
         screenshotHelper.onDestroy()
+        clipboardSync.stop()
     }
 
 }
