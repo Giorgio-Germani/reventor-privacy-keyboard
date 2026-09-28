@@ -179,6 +179,10 @@ private class VoiceInputActionWindow(
                 cancelPlayed = true
             }
             inputTransaction.cancel()
+            // A session that ended without text (tap before speaking, no
+            // recognition) must close the window — otherwise the overlay
+            // stays up with a dead engine and nothing can dismiss it.
+            manager.closeActionWindow()
         }
     }
 
