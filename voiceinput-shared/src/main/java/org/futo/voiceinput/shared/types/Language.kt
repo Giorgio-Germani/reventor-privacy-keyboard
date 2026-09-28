@@ -16,12 +16,12 @@ enum class Language {
     French,
 }
 
-/** Order used by the language chips and the cycle control. */
+/** Order used by the language chips and the cycle control. Restricted to
+ *  the languages the bundled streaming engine covers (en, de); the Google
+ *  engine could serve more, but the chips stay consistent across engines. */
 val SupportedLanguages: List<Language> = listOf(
     Language.English,
     Language.German,
-    Language.French,
-    Language.Spanish,
 )
 
 /** Canonical short tag persisted in the VOICE_LANGUAGE setting (and used to match keyboard layouts). */

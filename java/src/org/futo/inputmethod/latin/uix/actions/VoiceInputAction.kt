@@ -1,17 +1,12 @@
 package org.futo.inputmethod.latin.uix.actions
 
 import android.content.Intent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -21,16 +16,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
-import org.futo.inputmethod.latin.ActiveSubtype
 import org.futo.inputmethod.latin.R
-import org.futo.inputmethod.latin.SubtypesSetting
 import org.futo.inputmethod.latin.uix.ANIMATE_BUBBLE
 import org.futo.inputmethod.latin.uix.AUDIO_FOCUS
 import org.futo.inputmethod.latin.uix.Action
@@ -43,11 +35,8 @@ import org.futo.inputmethod.latin.uix.PREFER_BLUETOOTH
 import org.futo.inputmethod.latin.uix.PersistentActionState
 import org.futo.inputmethod.latin.uix.USE_VAD_AUTOSTOP
 import org.futo.inputmethod.latin.uix.VOICE_LANGUAGE
-import org.futo.inputmethod.latin.uix.VoiceLanguageState
 import org.futo.inputmethod.latin.uix.getSetting
-import org.futo.inputmethod.latin.uix.getSettingBlocking
 import org.futo.inputmethod.latin.uix.setSetting
-import org.futo.inputmethod.latin.uix.setSettingBlocking
 import org.futo.inputmethod.latin.uix.settings.SettingsActivity
 import org.futo.inputmethod.latin.uix.utils.ModelOutputSanitizer
 import org.futo.inputmethod.latin.uix.openURI
@@ -57,9 +46,7 @@ import org.futo.voiceinput.shared.RecognizerViewSettings
 import org.futo.voiceinput.shared.RecordingSettings
 import org.futo.voiceinput.shared.SoundPlayer
 import org.futo.voiceinput.shared.types.Language
-import org.futo.voiceinput.shared.types.SupportedLanguages
 import org.futo.voiceinput.shared.types.getLanguageFromWhisperString
-import org.futo.voiceinput.shared.types.toWhisperString
 import org.futo.voiceinput.shared.ui.MicrophoneDeviceState
 import java.util.Locale
 
@@ -72,15 +59,6 @@ val SystemVoiceInputAction = Action(
     persistentState = null,
     windowImpl = null,
     shownInEditor = false
-)
-
-// Displayed in the language selector; native names so the user always
-// recognizes the language they are picking.
-private val CanaryLanguageLabels = mapOf(
-    Language.English to "English",
-    Language.German to "Deutsch",
-    Language.Spanish to "Español",
-    Language.French to "Français",
 )
 
 class VoiceInputPersistentState(val manager: KeyboardManagerForAction) : PersistentActionState {
@@ -99,7 +77,6 @@ private class VoiceInputActionWindow(
     val context = manager.getContext()
 
     private var shouldPlaySounds: Boolean = false
-    private val selectedLanguage = mutableStateOf(VoiceLanguageState.current)
 
     private fun loadSettings(): RecognizerViewSettings {
         val enableSound = context.getSetting(ENABLE_SOUND)
@@ -111,16 +88,18 @@ private class VoiceInputActionWindow(
 
         // The spoken language is whatever the user picked; it is persisted so
         // the choice sticks across dictations.
+        // The spoken language follows the VOICE_LANGUAGE setting, which the
+        // spacebar/layout switching keeps up to date. No in-session switching:
+        // the streaming engine loads one model per dictation.
         val language = getLanguageFromWhisperString(context.getSetting(VOICE_LANGUAGE))
             ?: Language.English
-        selectedLanguage.value = language
 
         shouldPlaySounds = enableSound
 
         return RecognizerViewSettings(
-            // Google's on-device engine streams good partial results; show
-            // them live in the text field like Gboard does.
-            shouldShowInlinePartialResult = true,
+            // Partial results stream into the text field via
+            // partialResult(); the overlay keeps showing the mic bubble.
+            shouldShowInlinePartialResult = false,
             shouldAnimateBubble = animateBubble,
             language = language,
             recordingConfiguration = RecordingSettings(
@@ -130,24 +109,6 @@ private class VoiceInputActionWindow(
                 useVADAutoStop = useVAD
             )
         )
-    }
-
-    private fun selectLanguage(language: Language) {
-        selectedLanguage.value = language
-        recognizerView.value?.setLanguage(language)
-        VoiceLanguageState.set(context, language)
-
-        // Keep the keyboard in sync: switch to an enabled keyboard layout
-        // for the chosen language, if one exists. LatinIME picks this up
-        // through the ActiveSubtype setting and chains back to the voice
-        // language.
-        val tag = language.toWhisperString()
-        val match = context.getSettingBlocking(SubtypesSetting).firstOrNull {
-            it.substringBefore(":").startsWith(tag)
-        }
-        if (match != null) {
-            context.setSettingBlocking(ActiveSubtype.key, match)
-        }
     }
 
     private var recognizerView: MutableState<RecognizerView?> = mutableStateOf(null)
@@ -181,28 +142,6 @@ private class VoiceInputActionWindow(
     }
 
     @Composable
-    private fun LanguageChip(label: String, selected: Boolean, onSelect: () -> Unit) {
-        val background = if (selected) {
-            MaterialTheme.colorScheme.primaryContainer
-        } else {
-            MaterialTheme.colorScheme.surfaceVariant
-        }
-
-        Box(
-            modifier = Modifier
-                .clickable(onClick = onSelect)
-                .background(background, RoundedCornerShape(100))
-                .padding(horizontal = 12.dp, vertical = 6.dp)
-        ) {
-            Text(
-                label,
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.labelLarge
-            )
-        }
-    }
-
-    @Composable
     override fun WindowContents(keyboardShown: Boolean) {
         Box(modifier = Modifier
             .fillMaxSize()
@@ -219,20 +158,6 @@ private class VoiceInputActionWindow(
             Box(modifier = Modifier.align(Alignment.Center)) {
                 when {
                     recognizerView.value != null -> recognizerView.value!!.Content()
-                }
-            }
-
-            Row(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                SupportedLanguages.forEach { language ->                    LanguageChip(
-                        label = CanaryLanguageLabels[language] ?: language.name,
-                        selected = language == selectedLanguage.value,
-                        onSelect = { selectLanguage(language) }
-                    )
                 }
             }
         }
