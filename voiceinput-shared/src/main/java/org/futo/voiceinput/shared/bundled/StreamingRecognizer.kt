@@ -60,6 +60,8 @@ class StreamingRecognizer(
 
     @Volatile private var finishRequested = false
 
+    @Volatile private var cancelledFlag = false
+
     private val useVADAutoStop get() = settings.recordingConfiguration.useVADAutoStop
 
     companion object {
@@ -106,13 +108,15 @@ class StreamingRecognizer(
     /** User tapped the overlay: stop capture and deliver the final text. */
     fun finish() {
         mainHandler.post {
-            if (running) finishRequested = true
+            println("StreamingRecognizer: finish requested (tap)")
+            finishRequested = true
         }
     }
 
     /** Abandon the session entirely; no result is delivered. */
     fun cancel() {
         mainHandler.post {
+            cancelledFlag = true
             running = false
             finishRequested = false
         }
@@ -123,8 +127,12 @@ class StreamingRecognizer(
         var stream: OnlineStream? = null
         var pendingBuffer = ArrayList<FloatArray>()
 
-        val deliver: (String) -> Unit = { text ->
+        cancelledFlag = false
+        finishRequested = false
+
+        fun deliver(text: String) {
             running = false
+            if (cancelledFlag) return
             mainHandler.post {
                 if (text.isEmpty()) listener.cancelled() else listener.finished(text)
             }
