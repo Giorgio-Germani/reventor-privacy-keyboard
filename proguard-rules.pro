@@ -67,5 +67,3 @@
 
 # Keep swipe
 -keep class org.futo.ml.inference.** { *; }
-# Keep sherpa-onnx classes: the native library accesses config fields via JNI
--keep class com.k2fsa.sherpa.onnx.** { *; }

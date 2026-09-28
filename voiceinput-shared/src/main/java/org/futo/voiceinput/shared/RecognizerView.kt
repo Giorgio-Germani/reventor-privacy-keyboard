@@ -37,6 +37,23 @@ data class RecognizerViewSettings(
     val recordingConfiguration: RecordingSettings
 )
 
+/**
+ * Mic/processing options kept for settings compatibility. The on-device
+ * recognizer manages capture itself, so only [canExpandSpace] still has an
+ * effect; the rest are accepted but ignored.
+ */
+data class RecordingSettings(
+    val preferBluetoothMic: Boolean,
+    val requestAudioFocus: Boolean,
+    val canExpandSpace: Boolean,
+    val useVADAutoStop: Boolean,
+)
+
+data class AudioRecognizerSettings(
+    val language: Language,
+    val recordingConfiguration: RecordingSettings
+)
+
 interface RecognizerViewListener {
     fun cancelled()
 
@@ -103,7 +120,7 @@ class RecognizerView(
 
             CurrentView.PermissionError -> {
                 Column {
-                    RecognizeMicError(openSettings = { systemRecognizer.openPermissionSettings() })
+                    RecognizeMicError(openSettings = { recognizer.openPermissionSettings() })
                 }
             }
 
@@ -116,7 +133,7 @@ class RecognizerView(
                             onClickLabel = null,
                             onClick = {
                                 // Tap anywhere to retry the session.
-                                start()
+                                recognizer.start()
                             },
                             role = null,
                             indication = null,
@@ -142,17 +159,16 @@ class RecognizerView(
     }
 
     fun finish() {
-        if (useBundledEngine) bundledRecognizer.finish() else systemRecognizer.finish()
+        recognizer.finish()
     }
 
     fun cancel() {
-        if (useBundledEngine) bundledRecognizer.cancel() else systemRecognizer.cancel()
+        recognizer.cancel()
     }
 
     /** Changes the language the next dictation is transcribed as. */
     fun setLanguage(language: Language) {
-        systemRecognizer.setLanguage(language)
-        if (useBundledEngine) bundledRecognizer.setLanguage(language)
+        recognizer.setLanguage(language)
     }
 
     private val audioRecognizerListener = object : AudioRecognizerListener {
@@ -165,15 +181,6 @@ class RecognizerView(
         }
 
         override fun recognitionFailed(message: String) {
-            if (!useBundledEngine) {
-                // The system on-device engine failed (no models, broken
-                // store, unsupported device) — transparently switch to the
-                // bundled engine and keep dictation working.
-                useBundledEngine = true
-                loading()
-                bundledRecognizer.start()
-                return
-            }
             errorText.value = message
             currentViewState.value = CurrentView.ModelError
         }
@@ -231,15 +238,7 @@ class RecognizerView(
         }
     }
 
-    /**
-     * Two engines, strictly on-device both:
-     * - SystemSpeechRecognizer (Google's on-device engine) is tried first —
-     *   best quality where its language models exist.
-     * - If it fails (missing/broken model store, unsupported device), we
-     *   transparently fall back to the bundled Canary model running in this
-     *   process via sherpa-onnx.
-     */
-    private val systemRecognizer: SystemSpeechRecognizer = SystemSpeechRecognizer(
+    private val recognizer: SystemSpeechRecognizer = SystemSpeechRecognizer(
         context = context,
         lifecycleScope = lifecycleScope,
         listener = audioRecognizerListener,
@@ -249,27 +248,11 @@ class RecognizerView(
         )
     )
 
-    private val bundledRecognizer: AudioRecognizer by lazy {
-        AudioRecognizer(
-            context = context,
-            lifecycleScope = lifecycleScope,
-            listener = audioRecognizerListener,
-            settings = AudioRecognizerSettings(
-                language = settings.language,
-                recordingConfiguration = settings.recordingConfiguration
-            )
-        )
-    }
-
-    @Volatile
-    private var useBundledEngine = !SystemSpeechRecognizer.isSupported(context)
-
     fun reset() {
-        systemRecognizer.reset()
-        if (useBundledEngine) bundledRecognizer.reset()
+        recognizer.reset()
     }
 
     fun start() {
-        if (useBundledEngine) bundledRecognizer.start() else systemRecognizer.start()
+        recognizer.start()
     }
 }

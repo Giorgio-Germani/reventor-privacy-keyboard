@@ -109,7 +109,7 @@ android {
     }
 
     androidResources {
-        noCompress += ['onnx', 'bin']
+        noCompress += ['bin']
     }
 }
 
@@ -130,9 +130,6 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.navigation:navigation-compose:2.7.7'
     implementation 'androidx.datastore:datastore-preferences:1.1.1'
-
-    implementation(name:'vad-release', ext:'aar')
-    implementation(name:'sherpa-onnx-release', ext:'aar')
 
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1'
 }
