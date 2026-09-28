@@ -11,7 +11,9 @@ interface AudioRecognizerListener {
     fun finished(result: String)
     fun partialResult(result: String)
     fun decodingStatus(status: InferenceState)
-    fun modelLoadingFailed()
+
+    /** Offline recognition cannot start (missing engine, language pack, …); message is user-facing. */
+    fun recognitionFailed(message: String)
 
     fun loading()
     fun needPermission(onResult: (Boolean) -> Unit)

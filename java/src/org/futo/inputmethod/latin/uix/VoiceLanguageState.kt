@@ -4,16 +4,16 @@ import android.content.Context
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.futo.voiceinput.shared.canary.CanaryLanguages
 import org.futo.voiceinput.shared.types.Language
+import org.futo.voiceinput.shared.types.SupportedLanguages
 import org.futo.voiceinput.shared.types.getLanguageFromWhisperString
 import org.futo.voiceinput.shared.types.toWhisperString
 
-// The language the Canary recognizer will transcribe with. It is mirrored
-// here so the spacebar can display it synchronously (MainKeyboardView draws
-// from this during onDraw, where the DataStore cannot be read). Use set()/-
-// cycle() to change it; they persist through the VOICE_LANGUAGE setting and
-// LatinIME invalidates the keyboard when that changes.
+// The language dictation will use. It is mirrored here so the spacebar can
+// display it synchronously (MainKeyboardView draws from this during onDraw,
+// where the DataStore cannot be read). Use set()/cycle() to change it; they
+// persist through the VOICE_LANGUAGE setting and LatinIME invalidates the
+// keyboard when that changes.
 object VoiceLanguageState {
     @Volatile
     var current: Language = Language.English
@@ -42,8 +42,8 @@ object VoiceLanguageState {
     }
 
     fun cycle(context: Context): Language {
-        val next = CanaryLanguages.elementAt(
-            (CanaryLanguages.indexOf(current) + 1) % CanaryLanguages.size
+        val next = SupportedLanguages.elementAt(
+            (SupportedLanguages.indexOf(current) + 1) % SupportedLanguages.size
         )
         set(context, next)
         return next

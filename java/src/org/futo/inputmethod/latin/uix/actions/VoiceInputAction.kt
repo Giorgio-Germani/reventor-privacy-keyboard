@@ -28,7 +28,9 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.yield
+import org.futo.inputmethod.latin.ActiveSubtype
 import org.futo.inputmethod.latin.R
+import org.futo.inputmethod.latin.SubtypesSetting
 import org.futo.inputmethod.latin.uix.ANIMATE_BUBBLE
 import org.futo.inputmethod.latin.uix.AUDIO_FOCUS
 import org.futo.inputmethod.latin.uix.Action
@@ -43,7 +45,9 @@ import org.futo.inputmethod.latin.uix.USE_VAD_AUTOSTOP
 import org.futo.inputmethod.latin.uix.VOICE_LANGUAGE
 import org.futo.inputmethod.latin.uix.VoiceLanguageState
 import org.futo.inputmethod.latin.uix.getSetting
+import org.futo.inputmethod.latin.uix.getSettingBlocking
 import org.futo.inputmethod.latin.uix.setSetting
+import org.futo.inputmethod.latin.uix.setSettingBlocking
 import org.futo.inputmethod.latin.uix.settings.SettingsActivity
 import org.futo.inputmethod.latin.uix.utils.ModelOutputSanitizer
 import org.futo.inputmethod.latin.uix.openURI
@@ -52,9 +56,10 @@ import org.futo.voiceinput.shared.RecognizerViewListener
 import org.futo.voiceinput.shared.RecognizerViewSettings
 import org.futo.voiceinput.shared.RecordingSettings
 import org.futo.voiceinput.shared.SoundPlayer
-import org.futo.voiceinput.shared.canary.CanaryLanguages
 import org.futo.voiceinput.shared.types.Language
+import org.futo.voiceinput.shared.types.SupportedLanguages
 import org.futo.voiceinput.shared.types.getLanguageFromWhisperString
+import org.futo.voiceinput.shared.types.toWhisperString
 import org.futo.voiceinput.shared.ui.MicrophoneDeviceState
 import java.util.Locale
 
@@ -113,7 +118,9 @@ private class VoiceInputActionWindow(
         shouldPlaySounds = enableSound
 
         return RecognizerViewSettings(
-            shouldShowInlinePartialResult = false,
+            // Google's on-device engine streams good partial results; show
+            // them live in the text field like Gboard does.
+            shouldShowInlinePartialResult = true,
             shouldAnimateBubble = animateBubble,
             language = language,
             recordingConfiguration = RecordingSettings(
@@ -129,6 +136,18 @@ private class VoiceInputActionWindow(
         selectedLanguage.value = language
         recognizerView.value?.setLanguage(language)
         VoiceLanguageState.set(context, language)
+
+        // Keep the keyboard in sync: switch to an enabled keyboard layout
+        // for the chosen language, if one exists. LatinIME picks this up
+        // through the ActiveSubtype setting and chains back to the voice
+        // language.
+        val tag = language.toWhisperString()
+        val match = context.getSettingBlocking(SubtypesSetting).firstOrNull {
+            it.substringBefore(":").startsWith(tag)
+        }
+        if (match != null) {
+            context.setSettingBlocking(ActiveSubtype.key, match)
+        }
     }
 
     private var recognizerView: MutableState<RecognizerView?> = mutableStateOf(null)
@@ -209,8 +228,7 @@ private class VoiceInputActionWindow(
                     .padding(top = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                CanaryLanguages.forEach { language ->
-                    LanguageChip(
+                SupportedLanguages.forEach { language ->                    LanguageChip(
                         label = CanaryLanguageLabels[language] ?: language.name,
                         selected = language == selectedLanguage.value,
                         onSelect = { selectLanguage(language) }

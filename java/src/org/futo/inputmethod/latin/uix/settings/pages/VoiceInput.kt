@@ -61,36 +61,10 @@ val VoiceInputMenu = UserSettingsMenu(
             setting = ENABLE_SOUND
         ).copy(visibilityCheck = visibilityCheckNotSystemVoiceInput),
 
-        /*
-        userSettingToggleDataStore(
-            title = R.string.voice_input_settings_verbose_progress,
-            subtitle = R.string.voice_input_settings_verbose_progress_subtitle,
-            setting = VERBOSE_PROGRESS
-        ).copy(visibilityCheck = visibilityCheckNotSystemVoiceInput),
-         */
-
-        userSettingToggleDataStore(
-            title = R.string.voice_input_settings_use_bluetooth_mic,
-            subtitle = R.string.voice_input_settings_use_bluetooth_mic_subtitle,
-            setting = PREFER_BLUETOOTH
-        ).copy(visibilityCheck = visibilityCheckNotSystemVoiceInput),
-
-        userSettingToggleDataStore(
-            title = R.string.voice_input_settings_audio_focus,
-            subtitle = R.string.voice_input_settings_audio_focus_subtitle,
-            setting = AUDIO_FOCUS
-        ).copy(visibilityCheck = visibilityCheckNotSystemVoiceInput),
-
         userSettingToggleDataStore(
             title = R.string.voice_input_settings_long_form,
             subtitle = R.string.voice_input_settings_long_form_subtitle,
             setting = CAN_EXPAND_SPACE
-        ).copy(visibilityCheck = visibilityCheckNotSystemVoiceInput),
-
-        userSettingToggleDataStore(
-            title = R.string.voice_input_settings_autostop_vad,
-            subtitle = R.string.voice_input_settings_autostop_vad_subtitle,
-            setting = USE_VAD_AUTOSTOP
         ).copy(visibilityCheck = visibilityCheckNotSystemVoiceInput),
 
         userSettingToggleDataStore(

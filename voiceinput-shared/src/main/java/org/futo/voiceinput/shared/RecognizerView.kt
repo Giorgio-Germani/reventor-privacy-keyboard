@@ -22,6 +22,7 @@ import org.futo.voiceinput.shared.types.AudioRecognizerListener
 import org.futo.voiceinput.shared.types.InferenceState
 import org.futo.voiceinput.shared.types.Language
 import org.futo.voiceinput.shared.types.MagnitudeState
+import org.futo.voiceinput.shared.system.SystemSpeechRecognizer
 import org.futo.voiceinput.shared.ui.InnerRecognize
 import org.futo.voiceinput.shared.ui.MicrophoneDeviceState
 import org.futo.voiceinput.shared.ui.PartialDecodingResult
@@ -32,6 +33,23 @@ data class RecognizerViewSettings(
     val shouldShowInlinePartialResult: Boolean,
     val shouldAnimateBubble: Boolean,
 
+    val language: Language,
+    val recordingConfiguration: RecordingSettings
+)
+
+/**
+ * Mic/processing options kept for settings compatibility. The on-device
+ * recognizer manages capture itself, so only [canExpandSpace] still has an
+ * effect; the rest are accepted but ignored.
+ */
+data class RecordingSettings(
+    val preferBluetoothMic: Boolean,
+    val requestAudioFocus: Boolean,
+    val canExpandSpace: Boolean,
+    val useVADAutoStop: Boolean,
+)
+
+data class AudioRecognizerSettings(
     val language: Language,
     val recordingConfiguration: RecordingSettings
 )
@@ -66,6 +84,7 @@ class RecognizerView(
 
     private val loadingCircleText = mutableStateOf("")
     private val partialDecodingText = mutableStateOf("")
+    private val errorText = mutableStateOf("")
     private val currentViewState = mutableStateOf(CurrentView.LoadingCircle)
 
     private val currentDeviceState = mutableStateOf(MicrophoneDeviceState(
@@ -118,7 +137,7 @@ class RecognizerView(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() })) {
                     Text(
-                        stringResource(R.string.model_load_error),
+                        if (errorText.value.isEmpty()) stringResource(R.string.model_load_error) else errorText.value,
                         modifier = Modifier
                             .align(Alignment.Center)
                             .padding(8.dp), textAlign = TextAlign.Center)
@@ -149,8 +168,8 @@ class RecognizerView(
             listener.finished(result)
         }
 
-        override fun modelLoadingFailed() {
-            listener.cancelled()
+        override fun recognitionFailed(message: String) {
+            errorText.value = message
             currentViewState.value = CurrentView.ModelError
         }
 
@@ -207,7 +226,7 @@ class RecognizerView(
         }
     }
 
-    private val recognizer: AudioRecognizer = AudioRecognizer(
+    private val recognizer: SystemSpeechRecognizer = SystemSpeechRecognizer(
         context = context,
         lifecycleScope = lifecycleScope,
         listener = audioRecognizerListener,

@@ -30,4 +30,9 @@
 
     <!-- Occurs when the model is corrupted, or loading failed for some other unknown reason. -->
     <string name="model_load_error">Error loading model. It may be corrupted or incomplete. Try reverting it to default or downloading again.</string>
+
+    <!-- On-device (Google engine) recognition -->
+    <string name="offline_recognition_unavailable">Offline speech recognition is not available on this device. Install or update the Google app, then download the offline speech recognition languages you speak (Google app → Settings → Languages → Offline speech recognition).</string>
+    <string name="recognition_error_language_pack">The offline speech pack for this language isn\'t installed. Download it in the Google app (Settings → Languages → Offline speech recognition), or pick another language.</string>
+    <string name="recognition_error_generic">Speech recognition failed. Try again.</string>
 </resources>

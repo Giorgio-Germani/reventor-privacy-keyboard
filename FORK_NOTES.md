@@ -6,17 +6,28 @@ intentionally kept, and what remains if full ownership is ever desired.
 
 ## Voice input
 
-Voice recognition runs entirely on-device with NVIDIA Canary 180M Flash
-(see [CANARY_SETUP.md](CANARY_SETUP.md)). The spoken language is **not**
-auto-detected:
+Dictation uses **Google's on-device speech engine** via
+`SpeechRecognizer.createOnDeviceSpeechRecognizer()`. The strict requirement is
+that **audio never leaves the device**: only the on-device factory is used
+(API 31+ and `isOnDeviceRecognitionAvailable`), never the network-capable
+recognizer. On devices without the engine (de-Googled ROMs, API < 31), the
+voice window shows setup guidance instead of silently degrading to a
+network path, and the mic can be delegated to an external voice-input app
+(`USE_SYSTEM_VOICE_INPUT`) as a manual fallback.
 
-- The spacebar permanently shows the current dictation language.
-- Switching the keyboard language (long-press/swipe on the spacebar) also
-  switches the dictation language when the language is supported
-  (English, German, Spanish, French). Unsupported keyboard languages leave
-  the dictation language unchanged.
-- The language can also be tapped directly in the voice input window (chips
-  at the top). The microphone button never changes the language.
+- The spoken language is **not** auto-detected: the spacebar shows the
+  current dictation language, switching the keyboard layout switches the
+  dictation language when supported (English, German, Spanish, French), and
+  the chips in the voice window select it directly. Languages are passed as
+  explicit BCP-47 tags (`en-US`, `de-DE`, …) to the recognizer.
+- Offline language packs are managed by the Google app (Play downloads);
+  a missing pack surfaces an error with instructions rather than failing
+  silently.
+- This replaced the previously bundled NVIDIA Canary 180M Flash model
+  (sherpa-onnx, ~350 MB of assets, en/de/es/fr only): the APK shrank from
+  ~379 MB to ~30 MB, at the cost of depending on the Google app being
+  present. The old pipeline lived in `voiceinput-shared` (`AudioRecognizer`,
+  `canary/CanaryRunner`) — see git history.
 
 ## Clipboard sync (added by this fork)
 

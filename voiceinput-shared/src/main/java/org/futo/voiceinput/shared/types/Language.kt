@@ -1,7 +1,14 @@
 package org.futo.voiceinput.shared.types
 
-// The languages the bundled canary-180m-flash model supports; the user picks
-// which one they speak and it is passed to the recognizer directly.
+/**
+ * Languages the user can pick for dictation. The user chooses explicitly —
+ * there is no automatic language detection.
+ *
+ * The recognizer is Google's on-device engine (SpeechRecognizer on-device),
+ * which itself supports many more languages than listed here; this set is
+ * what the voice window chips and the spacebar language cycling offer, kept
+ * intentionally small and matching the keyboard layouts in the app.
+ */
 enum class Language {
     English,
     German,
@@ -9,7 +16,15 @@ enum class Language {
     French,
 }
 
+/** Order used by the language chips and the cycle control. */
+val SupportedLanguages: List<Language> = listOf(
+    Language.English,
+    Language.German,
+    Language.French,
+    Language.Spanish,
+)
 
+/** Canonical short tag persisted in the VOICE_LANGUAGE setting (and used to match keyboard layouts). */
 fun Language.toWhisperString(): String {
     return when (this) {
         Language.English -> "en"
@@ -27,5 +42,15 @@ fun getLanguageFromWhisperString(str: String): Language? {
         "es" -> Language.Spanish
         "fr" -> Language.French
         else -> null
+    }
+}
+
+/** BCP-47 tag passed to the system recognizer for this language. */
+fun Language.toLanguageTag(): String {
+    return when (this) {
+        Language.English -> "en-US"
+        Language.German -> "de-DE"
+        Language.Spanish -> "es-ES"
+        Language.French -> "fr-FR"
     }
 }
