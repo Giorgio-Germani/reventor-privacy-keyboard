@@ -37,6 +37,11 @@ shared `:sync-protocol` module. Design decisions worth remembering:
   connection (each side announces its current clip when a link goes live).
   PC→phone delivery therefore happens when the keyboard next appears; an
   optional same-process foreground service could make it instant (future work).
+- **Desktop installers** are built per-OS (jpackage cannot cross-build): run
+  `gradlew :desktop:packageDistributionForCurrentOS` on Windows (→ MSI),
+  macOS (→ DMG), or Linux (→ AppImage + deb) under
+  `desktop/build/compose/binaries/main/`. Unsigned builds trigger
+  SmartScreen/Gatekeeper warnings ("run anyway" / right-click-open).
 
 ## Removed from upstream FUTO Keyboard
 

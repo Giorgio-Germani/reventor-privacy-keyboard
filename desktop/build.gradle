@@ -27,9 +27,13 @@ compose.desktop {
         mainClass = "org.reventor.sync.desktop.MainKt"
 
         nativeDistributions {
+            // Installers can only be built on their own OS (jpackage cannot
+            // cross-build): Windows builds the Msi, macOS the Dmg, Linux the
+            // AppImage + Deb. Run packageDistributionForCurrentOS on each.
             targetFormats(org.jetbrains.compose.desktop.application.dsl.TargetFormat.Msi,
-                          org.jetbrains.compose.desktop.application.dsl.TargetFormat.Deb,
-                          org.jetbrains.compose.desktop.application.dsl.TargetFormat.Dmg)
+                          org.jetbrains.compose.desktop.application.dsl.TargetFormat.Dmg,
+                          org.jetbrains.compose.desktop.application.dsl.TargetFormat.AppImage,
+                          org.jetbrains.compose.desktop.application.dsl.TargetFormat.Deb)
             packageName = "ReventorSync"
             packageVersion = "1.0.0"
         }
