@@ -195,6 +195,9 @@ class StreamingRecognizer(
             loop@ while (running && coroutineContext.isActive) {
                 val n = recorderInstance.read(chunk, 0, chunk.size, AudioRecord.READ_BLOCKING)
                 if (n <= 0) break
+                // A tap on the overlay stops capture immediately; whatever
+                // was recognized so far is flushed and delivered.
+                if (finishRequested) break
 
                 val floats = FloatArray(n) { chunk[it] / Short.MAX_VALUE.toFloat() }
                 var sumSquares = 0.0
