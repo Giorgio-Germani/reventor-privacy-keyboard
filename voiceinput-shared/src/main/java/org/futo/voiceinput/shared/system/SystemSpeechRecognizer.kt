@@ -70,6 +70,7 @@ class SystemSpeechRecognizer(
 
     fun start() {
         mainHandler.post {
+            println("SystemSpeech: start requested, supported=${isSupported(context)} (API ${Build.VERSION.SDK_INT})")
             if (!isSupported(context)) {
                 listener.recognitionFailed(
                     context.getString(org.futo.voiceinput.shared.R.string.offline_recognition_unavailable)
@@ -132,6 +133,7 @@ class SystemSpeechRecognizer(
             putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
         }
         running = true
+        println("SystemSpeech: startListening ${language.toLanguageTag()}")
         sr.startListening(intent)
     }
 
@@ -176,6 +178,7 @@ class SystemSpeechRecognizer(
 
         override fun onError(error: Int) {
             running = false
+            println("SystemSpeech: onError code=$error")
             when (error) {
                 SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS ->
                     listener.needPermission { granted -> if (granted) start() }
@@ -214,15 +217,12 @@ class SystemSpeechRecognizer(
 
     private fun errorMessage(error: Int): String = context.getString(
         when (error) {
-            SpeechRecognizer.ERROR_NETWORK_TIMEOUT,
-            SpeechRecognizer.ERROR_NETWORK,
-            -> org.futo.voiceinput.shared.R.string.recognition_error_generic
-
-            SpeechRecognizer.ERROR_CLIENT -> org.futo.voiceinput.shared.R.string.recognition_error_generic
-            SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED ->
+            // Public constant; Google's service also reports its internal
+            // code 13 for the same condition on some Android versions.
+            SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED, 13 ->
                 org.futo.voiceinput.shared.R.string.recognition_error_language_pack
 
             else -> org.futo.voiceinput.shared.R.string.recognition_error_generic
         }
-    )
+    ) + " (code $error)"
 }

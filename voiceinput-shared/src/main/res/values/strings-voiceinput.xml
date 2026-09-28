@@ -35,4 +35,5 @@
     <string name="offline_recognition_unavailable">Offline speech recognition is not available on this device. Install or update the Google app, then download the offline speech recognition languages you speak (Google app → Settings → Languages → Offline speech recognition).</string>
     <string name="recognition_error_language_pack">The offline speech pack for this language isn\'t installed. Download it in the Google app (Settings → Languages → Offline speech recognition), or pick another language.</string>
     <string name="recognition_error_generic">Speech recognition failed. Try again.</string>
+    <string name="download_language_packs">Download offline speech languages</string>
 </resources>

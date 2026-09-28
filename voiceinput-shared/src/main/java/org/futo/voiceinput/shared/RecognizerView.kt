@@ -125,22 +125,33 @@ class RecognizerView(
             }
 
             CurrentView.ModelError -> {
-                Box(modifier = Modifier
-                    .fillMaxSize()
-                    .clickable(
-                        enabled = true,
-                        onClickLabel = null,
-                        onClick = {
-                            listener.openSettings()
-                        },
-                        role = null,
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() })) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable(
+                            enabled = true,
+                            onClickLabel = null,
+                            onClick = {
+                                listener.openSettings()
+                            },
+                            role = null,
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+                ) {
                     Text(
                         if (errorText.value.isEmpty()) stringResource(R.string.model_load_error) else errorText.value,
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(8.dp), textAlign = TextAlign.Center)
+                        modifier = Modifier.padding(8.dp), textAlign = TextAlign.Center)
+
+                    val installIntent = SystemSpeechRecognizer.languageInstallerIntent(context)
+                    if (installIntent != null) {
+                        androidx.compose.material3.TextButton(onClick = {
+                            context.startActivity(installIntent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+                        }) {
+                            Text(stringResource(R.string.download_language_packs))
+                        }
+                    }
                 }
             }
         }
