@@ -59,6 +59,10 @@ class SystemSpeechRecognizer(
     private var language: Language = settings.language
     private var running = false
 
+    @Volatile private var gotReady = false
+
+    private var failoverDone = false
+
     /**
      * Google's service can deliver several errors for one failed session
      * (e.g. "pack missing" followed ~5 s later by a generic CLIENT error).
@@ -99,10 +103,20 @@ class SystemSpeechRecognizer(
     /** User tapped the overlay: stop capture and deliver the final result. */
     fun finish() {
         mainHandler.post {
+            println("SystemSpeech: finish requested (tap)")
             try {
                 recognizer?.stopListening()
             } catch (_: Exception) {
             }
+            // A broken service may simply ignore stopListening. If the
+            // session is still running 1.5 s after the tap, hand over to
+            // the bundled engine instead of leaving the user stuck.
+            mainHandler.postDelayed({
+                if (running) {
+                    println("SystemSpeech: stop request ignored, engine unresponsive")
+                    failover()
+                }
+            }, 1500)
         }
     }
 
@@ -123,9 +137,24 @@ class SystemSpeechRecognizer(
         context.startActivity(intent)
     }
 
+    /**
+     * The bound service is not delivering (zombie session): kill it and
+     * report failure so RecognizerView switches to the bundled engine.
+     */
+    private fun failover() {
+        if (failoverDone) return
+        failoverDone = true
+        running = false
+        destroyRecognizer()
+        listener.recognitionFailed(
+            context.getString(org.futo.voiceinput.shared.R.string.recognition_error_generic)
+        )
+    }
+
     private fun startListening() {
         destroyRecognizer()
         reportedFatalError = false
+        failoverDone = false
         listener.loading()
 
         val sr = SpeechRecognizer.createOnDeviceSpeechRecognizer(context)
@@ -176,8 +205,18 @@ class SystemSpeechRecognizer(
         }
 
         running = true
+        gotReady = false
         println("SystemSpeech: startListening ${language.toLanguageTag()}")
         sr.startListening(intent)
+
+        // If the service never even becomes ready, nothing else will happen
+        // either — fail over to the bundled engine.
+        mainHandler.postDelayed({
+            if (running && !gotReady) {
+                println("SystemSpeech: watchdog — not ready after 4 s")
+                failover()
+            }
+        }, 4000)
     }
 
     private fun recognitionIntent(tag: String): Intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
@@ -209,6 +248,7 @@ class SystemSpeechRecognizer(
 
     private val recognitionListener = object : RecognitionListener {
         override fun onReadyForSpeech(params: Bundle?) {
+            gotReady = true
             listener.recordingStarted(noDevice)
         }
 
@@ -249,6 +289,7 @@ class SystemSpeechRecognizer(
 
         override fun onResults(results: Bundle?) {
             running = false
+            gotReady = false
             val text = results
                 ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 ?.firstOrNull()
